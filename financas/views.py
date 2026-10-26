@@ -11,14 +11,16 @@ from django.db.models import Sum
 from .models import (Pessoa, Categoria, FormaPagamento, Mes, Receita, Gasto, Cartao, Divida, ReservaEmergencia)
 from .forms import (PessoaForm, CategoriaForm, FormaPagamentoForm, MesForm, ReceitaForm, GastoForm, CartaoForm, DividaForm, ReservaForm)
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.decorators import login_required
 
 # ---------- PESSOAS ----------
+@login_required
 def pessoa_lista(request):
     pessoas = Pessoa.objects.all()
     form = PessoaForm()
     return render(request, 'financas/pessoa_lista.html', {'pessoas': pessoas, 'form': form})
 
-
+@login_required
 def pessoa_criar(request):
     if request.method == 'POST':
         form = PessoaForm(request.POST)
@@ -230,115 +232,10 @@ def gasto_criar(request):
     })
 
 
-# ---------- DASHBOARD ----------
-# def dashboard(request):
-#     mes_ativo_id = request.session.get('mes_ativo_id')
-#     if not mes_ativo_id:
-#         return render(request, 'financas/dashboard.html', {'sem_mes_ativo': True})
 
-#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
-
-#     # Totais
-#     total_receitas = Receita.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-#     total_gastos = Gasto.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-#     verba = total_receitas - total_gastos
-
-#     # Alerta
-#     if total_receitas == 0:
-#         alerta = 'sem_receita'
-#     elif verba < 0:
-#         alerta = 'estourado'
-#     elif verba < (total_receitas * Decimal('0.10')):
-#         alerta = 'apertado'
-#     else:
-#         alerta = 'ok'
-
-#     # 50-30-20
-#     gastos_essenciais = Gasto.objects.filter(
-#         mes=mes_ativo, categoria__tipo='E'
-#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#     gastos_nao_essenciais = Gasto.objects.filter(
-#         mes=mes_ativo, categoria__tipo='N'
-#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#     if total_receitas > 0:
-#         pct_essenciais = float((gastos_essenciais / total_receitas) * 100)
-#         pct_nao_essenciais = float((gastos_nao_essenciais / total_receitas) * 100)
-#         pct_sobra = float((verba / total_receitas) * 100)
-#     else:
-#         pct_essenciais = 0
-#         pct_nao_essenciais = 0
-#         pct_sobra = 0
-
-#     # Orçamentos por categoria
-#     categorias_com_limite = Categoria.objects.filter(
-#         ativo=True, limite_mensal__isnull=False
-#     ).exclude(limite_mensal=0)
-
-#     orcamentos = []
-#     for cat in categorias_com_limite:
-#         gasto_cat = Gasto.objects.filter(
-#             mes=mes_ativo, categoria=cat
-#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#         pct_usado = float((gasto_cat / cat.limite_mensal) * 100) if cat.limite_mensal > 0 else 0
-#         restante = cat.limite_mensal - gasto_cat
-
-#         if pct_usado > 100:
-#             cor = 'danger'
-#         elif pct_usado >= 70:
-#             cor = 'warning'
-#         else:
-#             cor = 'success'
-
-#         orcamentos.append({
-#             'categoria': cat,
-#             'gasto': gasto_cat,
-#             'limite': cat.limite_mensal,
-#             'restante': restante,
-#             'pct_usado': pct_usado,
-#             'cor': cor,
-#         })
-
-#     # --- CARTÕES ---
-#     cartoes_ativos = Cartao.objects.filter(ativo=True)
-#     resumo_cartoes = []
-    
-#     for c in cartoes_ativos:
-#         total_cartao = Gasto.objects.filter(
-#             mes=mes_ativo, cartao=c
-#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-        
-#         resumo_cartoes.append({
-#             'cartao': c,
-#             'total_mes': total_cartao
-#         })
-
-#     # Últimos 5 lançamentos (traz os últimos IDs cadastrados para não misturar datas antigas)
-
-#     ultimas_receitas = Receita.objects.filter(mes=mes_ativo).order_by('-id')[:5]
-#     ultimos_gastos = Gasto.objects.filter(mes=mes_ativo).order_by('-id')[:5]
-
-#     return render(request, 'financas/dashboard.html', {
-#         'sem_mes_ativo': False,
-#         'mes_ativo': mes_ativo,
-#         'total_receitas': total_receitas,
-#         'total_gastos': total_gastos,
-#         'verba': verba,
-#         'alerta': alerta,
-#         'gastos_essenciais': gastos_essenciais,
-#         'gastos_nao_essenciais': gastos_nao_essenciais,
-#         'pct_essenciais': pct_essenciais,
-#         'pct_nao_essenciais': pct_nao_essenciais,
-#         'pct_sobra': pct_sobra,
-#         'orcamentos': orcamentos,
-#         'resumo_cartoes': resumo_cartoes,
-#         'ultimas_receitas': ultimas_receitas,
-#         'ultimos_gastos': ultimos_gastos,
-#     })
 
 # ---------- DASHBOARD ----------
+@login_required
 def dashboard(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
     if not mes_ativo_id:
