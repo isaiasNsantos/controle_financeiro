@@ -5,229 +5,206 @@
 
 {% block content %}
     {% if sem_mes_ativo %}
-        <div class="alert alert-warning py-2 shadow-sm border-0">
+        <div class="alert alert-warning py-2">
             ⚠️ Nenhum mês ativo. <a href="/financas/meses/">Selecione um mês</a>.
         </div>
     {% else %}
-        <!-- CABEÇALHO -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="mb-0 fw-bold text-dark">Visão Geral</h4>
-                <p class="text-muted small mb-0">Acompanhamento de {{ mes_ativo }}</p>
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold text-dark">Mês: {{ mes_ativo }}</h5>
             {% if alerta == 'estourado' %}
-                <span class="badge bg-pink py-2 px-3 fs-6 shadow-sm rounded-pill">🔴 ESTOURADO</span>
+                <span class="badge bg-pink py-1 px-2 shadow-sm">🔴 ESTOURADO</span>
             {% elif alerta == 'apertado' %}
-                <span class="badge bg-warning text-dark py-2 px-3 fs-6 shadow-sm rounded-pill">🟡 APERTADO</span>
+                <span class="badge bg-warning text-dark py-1 px-2 shadow-sm">🟡 APERTADO</span>
             {% elif alerta == 'ok' %}
-                <span class="badge bg-neon py-2 px-3 fs-6 shadow-sm rounded-pill text-white">🟢 OK</span>
+                <span class="badge bg-neon py-1 px-2 shadow-sm">🟢 OK</span>
             {% else %}
-                <span class="badge bg-secondary py-2 px-3 fs-6 shadow-sm rounded-pill">⚪ SEM RECEITA</span>
+                <span class="badge bg-secondary py-1 px-2 shadow-sm">⚪ SEM RECEITA</span>
             {% endif %}
         </div>
 
-        <!-- 1. RESUMO (Com as cores de volta) -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card card-resumo h-100 border-neon" style="border-left: 5px solid;">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="label-mini">Receitas</span>
-                            <div class="bg-neon bg-opacity-10 p-2 rounded-circle text-neon"><i class="bi bi-arrow-down-circle fs-5"></i></div>
-                        </div>
-                        <h3 class="valor-destaque text-neon mt-2 mb-0">R$ {{ total_receitas|moeda }}</h3>
+        <!-- 1. Resumo -->
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <div class="card card-resumo h-100 border-neon" style="border-left: 4px solid;">
+                    <div class="card-body p-2 text-center">
+                        <div class="label-mini">Receitas</div>
+                        <div class="valor-destaque text-neon mt-1">R$ {{ total_receitas|moeda }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card card-resumo h-100 border-pink" style="border-left: 5px solid;">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="label-mini">Gastos</span>
-                            <div class="bg-pink bg-opacity-10 p-2 rounded-circle text-pink"><i class="bi bi-arrow-up-circle fs-5"></i></div>
-                        </div>
-                        <h3 class="valor-destaque text-pink mt-2 mb-0">R$ {{ total_gastos|moeda }}</h3>
+            <div class="col-4">
+                <div class="card card-resumo h-100 border-pink" style="border-left: 4px solid;">
+                    <div class="card-body p-2 text-center">
+                        <div class="label-mini">Gastos</div>
+                        <div class="valor-destaque text-pink mt-1">R$ {{ total_gastos|moeda }}</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card card-resumo h-100 border-blue" style="border-left: 5px solid;">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="label-mini">Sobra</span>
-                            <div class="bg-blue bg-opacity-10 p-2 rounded-circle text-blue"><i class="bi bi-wallet2 fs-5"></i></div>
-                        </div>
-                        <h3 class="valor-destaque text-blue mt-2 mb-0">R$ {{ verba|moeda }}</h3>
+            <div class="col-4">
+                <div class="card card-resumo h-100 border-blue" style="border-left: 4px solid;">
+                    <div class="card-body p-2 text-center">
+                        <div class="label-mini">Sobra</div>
+                        <div class="valor-destaque text-blue mt-1">R$ {{ verba|moeda }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. GRÁFICO E 50-30-20 -->
-        <div class="row g-3 mb-4">
-            <div class="col-lg-5">
-                <div class="card card-form h-100">
-                    <div class="card-body p-3">
-                        <h6 class="label-mini mb-3">Onde seu dinheiro foi gasto</h6>
-                        {% if grafico_valores %}
-                            <div style="position: relative; height: 220px; width: 100%;">
-                                <canvas id="graficoGastos"></canvas>
-                            </div>
+        <!-- 2. 50-30-20 -->
+        <div class="row g-2 mb-3">
+            <div class="col-12 col-md-4">
+                <div class="card card-resumo h-100">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="label-mini">Essenciais</span>
+                            <span class="fw-bold {% if pct_essenciais <= 50 %}text-purple{% else %}text-pink{% endif %}">{{ pct_essenciais|floatformat:0 }}%</span>
+                        </div>
+                        <div class="fs-6 fw-bold text-dark">R$ {{ gastos_essenciais|moeda }}</div>
+                        <div class="progress mt-1">
+                            <div class="progress-bar {% if pct_essenciais <= 50 %}bg-purple{% else %}bg-pink{% endif %}" style="width: {{ pct_essenciais }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card card-resumo h-100">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="label-mini">Não essenciais</span>
+                            <span class="fw-bold {% if pct_nao_essenciais <= 30 %}text-purple{% else %}text-pink{% endif %}">{{ pct_nao_essenciais|floatformat:0 }}%</span>
+                        </div>
+                        <div class="fs-6 fw-bold text-dark">R$ {{ gastos_nao_essenciais|moeda }}</div>
+                        <div class="progress mt-1">
+                            <div class="progress-bar {% if pct_nao_essenciais <= 30 %}bg-purple{% else %}bg-pink{% endif %}" style="width: {{ pct_nao_essenciais }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card card-resumo h-100">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="label-mini">Sobra</span>
+                            <span class="fw-bold {% if pct_sobra >= 20 %}text-neon{% else %}text-pink{% endif %}">{{ pct_sobra|floatformat:0 }}%</span>
+                        </div>
+                        <div class="fs-6 fw-bold text-dark">R$ {{ verba|moeda }}</div>
+                        <div class="progress mt-1">
+                            <div class="progress-bar {% if pct_sobra >= 20 %}bg-neon{% else %}bg-pink{% endif %}" style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. GRÁFICO DE GASTOS -->
+        <div class="row g-2 mb-3">
+            <div class="col-12">
+                <div class="card card-form p-3 h-100">
+                    <h6 class="label-mini mb-3">Onde seu dinheiro foi gasto</h6>
+                    {% if grafico_valores %}
+                        <div style="position: relative; height: 250px; width: 100%; display: flex; justify-content: center;">
+                            <canvas id="graficoGastos"></canvas>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4" style="font-size: 0.85rem;">
+                            Nenhum gasto lançado neste mês.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Lançamentos -->
+        <h6 class="mt-3 mb-2 fw-bold text-purple"><i class="bi bi-list-ul"></i> Últimos Lançamentos</h6>
+        <div class="row g-2 mb-3">
+            <div class="col-12 col-md-6">
+                <div class="card card-lista h-100">
+                    <div class="card-header bg-neon text-white py-1 px-2 d-flex justify-content-between align-items-center" style="border-radius: 12px 12px 0 0;">
+                        <span class="fw-bold" style="font-size:0.8rem;">Receitas</span>
+                        <a href="{% url 'receita_lista' %}" class="text-white text-decoration-none" style="font-size:0.75rem;">ver +</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ultimas_receitas %}
+                            <ul class="list-group list-group-flush">
+                                {% for r in ultimas_receitas %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="text-truncate" style="max-width:70%;">
+                                            <div class="fw-bold text-dark">{{ r.descricao }}</div>
+                                            <small class="text-muted">{{ r.data|date:"d/m" }} • {{ r.pessoa.nome }}</small>
+                                        </div>
+                                        <span class="text-neon fw-bold">+ R$ {{ r.valor|moeda }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         {% else %}
-                            <div class="text-center text-muted py-5" style="font-size: 0.85rem;">Nenhum gasto lançado.</div>
+                            <div class="p-2 text-muted text-center" style="font-size:0.8rem;">Vazio</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            
-            <div class="col-lg-7">
-                <div class="card card-form h-100">
-                    <div class="card-body p-3">
-                        <h6 class="label-mini mb-4">Método 50-30-20</h6>
-                        
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-bold text-dark small"><i class="bi bi-house-door text-purple"></i> Essenciais <small class="text-muted fw-normal">(≤ 50%)</small></span>
-                                <span class="fw-bold text-purple small">R$ {{ gastos_essenciais|moeda }}</span>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar bg-purple" style="width: {{ pct_essenciais }}%"></div>
-                            </div>
-                            <div class="text-end text-purple fw-bold mt-1" style="font-size: 0.75rem;">{{ pct_essenciais|floatformat:1 }}%</div>
-                        </div>
 
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-bold text-dark small"><i class="bi bi-controller text-pink"></i> Não Essenciais <small class="text-muted fw-normal">(≤ 30%)</small></span>
-                                <span class="fw-bold text-pink small">R$ {{ gastos_nao_essenciais|moeda }}</span>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar bg-pink" style="width: {{ pct_nao_essenciais }}%"></div>
-                            </div>
-                            <div class="text-end text-pink fw-bold mt-1" style="font-size: 0.75rem;">{{ pct_nao_essenciais|floatformat:1 }}%</div>
-                        </div>
-
-                        <div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="fw-bold text-dark small"><i class="bi bi-piggy-bank text-blue"></i> Sobra <small class="text-muted fw-normal">(≥ 20%)</small></span>
-                                <span class="fw-bold text-blue small">R$ {{ verba|moeda }}</span>
-                            </div>
-                            <div class="progress">
-                                <div class="progress-bar bg-blue" style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%"></div>
-                            </div>
-                            <div class="text-end text-blue fw-bold mt-1" style="font-size: 0.75rem;">{{ pct_sobra|floatformat:1 }}%</div>
-                        </div>
+            <div class="col-12 col-md-6">
+                <div class="card card-lista h-100">
+                    <div class="card-header bg-pink text-white py-1 px-2 d-flex justify-content-between align-items-center" style="border-radius: 12px 12px 0 0;">
+                        <span class="fw-bold" style="font-size:0.8rem;">Gastos</span>
+                        <a href="{% url 'gasto_lista' %}" class="text-white text-decoration-none" style="font-size:0.75rem;">ver +</a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ultimos_gastos %}
+                            <ul class="list-group list-group-flush">
+                                {% for g in ultimos_gastos %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="text-truncate" style="max-width:70%;">
+                                            <div class="fw-bold text-dark">
+                                                {% if g.cartao %}<i class="bi bi-credit-card text-purple"></i> {% endif %}
+                                                {{ g.descricao }}
+                                            </div>
+                                            <small class="text-muted">{{ g.data|date:"d/m" }} • {{ g.categoria.nome }}</small>
+                                        </div>
+                                        <span class="text-pink fw-bold">- R$ {{ g.valor|moeda }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="p-2 text-muted text-center" style="font-size:0.8rem;">Vazio</div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. ORÇAMENTOS E CARTÕES -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-7">
-                <div class="card card-form h-100">
-                    <div class="card-body p-3">
-                        <h6 class="label-mini mb-3"><i class="bi bi-bullseye"></i> Orçamentos por Categoria</h6>
-                        <div class="row g-2">
-                            {% for o in orcamentos %}
-                                <div class="col-sm-6">
-                                    <div class="border rounded p-2" style="background: #f8fafc;">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="fw-bold text-dark text-truncate" style="font-size: 0.8rem; max-width: 70%;">{{ o.categoria.nome }}</span>
-                                            <span class="fw-bold text-{% if o.cor == 'danger' %}pink{% elif o.cor == 'success' %}neon{% else %}warning{% endif %}" style="font-size: 0.75rem;">{{ o.pct_usado|floatformat:0 }}%</span>
-                                        </div>
-                                        <div class="progress">
-                                            <div class="progress-bar bg-{% if o.cor == 'danger' %}pink{% elif o.cor == 'success' %}neon{% else %}warning{% endif %}" style="width: {% if o.pct_usado > 100 %}100{% else %}{{ o.pct_usado }}{% endif %}%"></div>
-                                        </div>
-                                        <div class="d-flex justify-content-between mt-1" style="font-size: 0.7rem;">
-                                            <span class="text-muted">R$ {{ o.gasto|moeda }}</span>
-                                            <span class="text-muted">R$ {{ o.limite|moeda }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <div class="col-12 text-muted small">Nenhum limite definido.</div>
-                            {% endfor %}
+        <!-- 5. Cartões -->
+        <h6 class="mt-3 mb-2 fw-bold text-purple"><i class="bi bi-credit-card"></i> Cartões</h6>
+        <div class="row g-2 mb-3">
+            {% for c in resumo_cartoes %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card card-resumo h-100" style="background: linear-gradient(135deg, #1e1b4b, #8b5cf6); color: white;">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="fw-bold" style="font-size: 0.9rem;">{{ c.cartao.nome }}</span>
+                                <i class="bi bi-credit-card fs-5"></i>
+                            </div>
+                            <div class="label-mini text-white-50">Fatura Atual</div>
+                            <div class="valor-destaque mt-1">R$ {{ c.total_mes|moeda }}</div>
+                            {% if c.cartao.limite %}
+                                <div class="text-white-50 mt-1" style="font-size: 0.7rem;">Limite: R$ {{ c.cartao.limite|moeda }}</div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-5">
-                <div class="card card-form h-100">
-                    <div class="card-body p-3">
-                        <h6 class="label-mini mb-3"><i class="bi bi-credit-card"></i> Faturas de Cartão</h6>
-                        {% for c in resumo_cartoes %}
-                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                <div>
-                                    <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ c.cartao.nome }}</div>
-                                    <small class="text-muted" style="font-size: 0.7rem;">Limite: R$ {{ c.cartao.limite|moeda }}</small>
-                                </div>
-                                <div class="fw-bold text-purple">R$ {{ c.total_mes|moeda }}</div>
-                            </div>
-                        {% empty %}
-                            <div class="text-muted small">Nenhum cartão cadastrado.</div>
-                        {% endfor %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-light border text-muted text-center py-2" style="font-size:0.8rem;">
+                        Nenhum cartão cadastrado. <a href="/financas/cartoes/">Cadastre aqui</a>.
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 4. ÚLTIMOS LANÇAMENTOS -->
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="card card-form overflow-hidden">
-                    <div class="card-header bg-neon text-white py-2 px-3 d-flex justify-content-between align-items-center" style="border-radius: 12px 12px 0 0;">
-                        <h6 class="mb-0 fw-bold" style="font-size: 0.8rem;"><i class="bi bi-arrow-down-circle"></i> Últimas Receitas</h6>
-                        <a href="{% url 'receita_lista' %}" class="text-white text-decoration-none" style="font-size: 0.75rem;">ver +</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            {% for r in ultimas_receitas %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size: 0.85rem;">{{ r.descricao }}</div>
-                                        <small class="text-muted" style="font-size: 0.7rem;">{{ r.data|date:"d/m" }} • {{ r.pessoa.nome }}</small>
-                                    </div>
-                                    <span class="text-neon fw-bold">+ R$ {{ r.valor|moeda }}</span>
-                                </li>
-                            {% empty %}
-                                <li class="list-group-item text-muted text-center border-0 py-4">Vazio</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card card-form overflow-hidden">
-                    <div class="card-header bg-pink text-white py-2 px-3 d-flex justify-content-between align-items-center" style="border-radius: 12px 12px 0 0;">
-                        <h6 class="mb-0 fw-bold" style="font-size: 0.8rem;"><i class="bi bi-arrow-up-circle"></i> Últimos Gastos</h6>
-                        <a href="{% url 'gasto_lista' %}" class="text-white text-decoration-none" style="font-size: 0.75rem;">ver +</a>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            {% for g in ultimos_gastos %}
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size: 0.85rem;">
-                                            {% if g.cartao %}<i class="bi bi-credit-card text-purple"></i> {% endif %}
-                                            {{ g.descricao }}
-                                        </div>
-                                        <small class="text-muted" style="font-size: 0.7rem;">{{ g.data|date:"d/m" }} • {{ g.categoria.nome }}</small>
-                                    </div>
-                                    <span class="text-pink fw-bold">- R$ {{ g.valor|moeda }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     {% endif %}
 {% endblock %}
 
 {% block extra_js %}
+<!-- CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -252,9 +229,15 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%',
+                    cutout: '70%', // Deixa a rosquinha fininha
                     plugins: {
-                        legend: { display: false } // Escondemos a legenda padrão pra ficar mais clean
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, family: 'sans-serif' }
+                            }
+                        }
                     }
                 }
             });
