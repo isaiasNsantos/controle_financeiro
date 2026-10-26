@@ -1,0 +1,36 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Editar Categoria - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h5 class="mb-3 text-purple fw-bold">Editar Categoria: {{ categoria.nome }}</h5>
+            <div class="card card-form p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Nome</label>
+                        {{ form.nome }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Tipo</label>
+                        {{ form.tipo }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Limite Mensal (R$)</label>
+                        {{ form.limite_mensal }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.ativo }}
+                        <label class="form-check-label">Ativo</label>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-purple flex-grow-1">Salvar Alterações</button>
+                        <a href="{% url 'categoria_lista' %}" class="btn btn-light border">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

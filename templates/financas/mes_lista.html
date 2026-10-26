@@ -1,0 +1,130 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Meses - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-5">
+            <h5 class="mb-3 text-purple fw-bold">Abrir Novo Mês</h5>
+            <div class="card card-form p-3 mb-4">
+                <form method="post" action="{% url 'mes_criar' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Ano</label>
+                        {{ form.ano }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Mês</label>
+                        {{ form.mes }}
+                    </div>
+                    {% if form.errors %}
+                        <div class="alert alert-danger py-2 small">
+                            Esse mês já foi aberto ou fechado!
+                        </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-purple w-100">Abrir Mês</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h5 class="mb-3 text-purple fw-bold">Meses em Andamento</h5>
+            {% if meses %}
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mês</th>
+                                <th>Status</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mes in meses %}
+                                <tr>
+                                    <td class="fw-bold text-dark">
+                                        {{ mes }}
+                                        {% if mes.id == mes_ativo_id %}
+                                            <span class="badge bg-neon ms-2">Ativo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if mes.id == mes_ativo_id %}
+                                            <span class="text-neon fw-bold">Selecionado</span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        {% if mes.id == mes_ativo_id %}
+                                            <form method="post" action="{% url 'mes_fechar' mes.id %}" class="d-inline"
+                                                  onsubmit="return confirm('Fechar {{ mes }} e abrir o próximo mês?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-warning fw-bold text-dark">
+                                                    <i class="bi bi-lock-fill"></i> Fechar e Avançar
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            {% if mes.receitas.count == 0 and mes.gastos.count == 0 %}
+                                                <form method="post" action="{% url 'mes_clonar' mes.id %}" class="d-inline"
+                                                      onsubmit="return confirm('Copiar todas as receitas e gastos fixos do mês anterior para {{ mes }}?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Clonar do mês anterior">
+                                                        <i class="bi bi-files"></i> Clonar
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            
+                                            <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Selecionar</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info py-2">Nenhum mês aberto.</div>
+            {% endif %}
+
+            <!-- HISTÓRICO DE MESES FECHADOS -->
+            {% if meses_fechados %}
+                <h5 class="mb-3 text-muted fw-bold mt-4"><i class="bi bi-archive"></i> Histórico (Fechados)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle bg-light shadow-sm rounded">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Mês Fechado</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mes in meses_fechados %}
+                                <tr>
+                                    <td class="fw-bold text-muted">{{ mes }}</td>
+                                    <td class="text-end text-nowrap">
+                                        <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary py-0" style="font-size: 0.75rem;">Visualizar</button>
+                                        </form>
+                                        
+                                        <form method="post" action="{% url 'mes_reabrir' mes.id %}" class="d-inline ms-1"
+                                              onsubmit="return confirm('Reabrir o mês {{ mes }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-warning py-0" style="font-size: 0.75rem;">
+                                                <i class="bi bi-unlock"></i> Reabrir
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

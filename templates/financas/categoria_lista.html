@@ -1,0 +1,82 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Categorias - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-5">
+            <h5 class="mb-3 text-purple fw-bold">Nova Categoria</h5>
+            <div class="card card-form p-3">
+                <form method="post" action="{% url 'categoria_criar' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Nome</label>
+                        {{ form.nome }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Tipo</label>
+                        {{ form.tipo }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Limite Mensal (R$)</label>
+                        {{ form.limite_mensal }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.ativo }}
+                        <label class="form-check-label">Ativo</label>
+                    </div>
+                    <button type="submit" class="btn btn-purple w-100">Salvar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h5 class="mb-3 text-purple fw-bold">Lista de Categorias</h5>
+            {% if categorias %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Tipo</th>
+                                <th>Limite</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria in categorias %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ categoria.nome }}</td>
+                                    <td>
+                                        {% if categoria.tipo == 'E' %}
+                                            <span class="badge bg-purple">Essencial</span>
+                                        {% else %}
+                                            <span class="badge bg-blue">Não essencial</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if categoria.limite_mensal %}
+                                            R$ {{ categoria.limite_mensal }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'categoria_editar' categoria.id %}" class="btn btn-sm btn-outline-secondary">✏️</a>
+                                        <form method="post" action="{% url 'categoria_excluir' categoria.id %}" class="d-inline"
+                                              onsubmit="return confirm('Excluir {{ categoria.nome }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">Nenhuma categoria cadastrada.</div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

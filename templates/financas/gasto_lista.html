@@ -1,0 +1,127 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Gastos - Controle Financeiro{% endblock %}
+
+{% block content %}
+    {% if sem_mes_ativo %}
+        <div class="alert alert-warning py-2">
+            ⚠️ Nenhum mês ativo. Vá em <a href="/financas/meses/">Meses</a>.
+        </div>
+    {% else %}
+        <!-- CABEÇALHO -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <h5 class="mb-0 text-purple fw-bold">Gastos — {{ mes_ativo }}</h5>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge bg-pink fs-6">Total: R$ {{ total }}</span>
+                <button class="btn btn-pink fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoGasto">
+                    <i class="bi bi-plus-circle"></i> Novo Gasto
+                </button>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO (Escondido) -->
+        <div class="collapse mb-4" id="formNovoGasto">
+            <div class="card card-form p-4 border-top border-4" style="border-top-color: #ec4899 !important;">
+                <h6 class="fw-bold text-pink mb-3"><i class="bi bi-pencil-square"></i> Lançar Novo Gasto</h6>
+                <form method="post" action="{% url 'gasto_criar' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label label-mini">Descrição</label>
+                            {{ form.descricao }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label label-mini">Valor (R$)</label>
+                            {{ form.valor }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label label-mini">Data</label>
+                            {{ form.data }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label label-mini">Categoria</label>
+                            {{ form.categoria }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label label-mini">Pessoa</label>
+                            {{ form.pessoa }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label label-mini">Pagamento</label>
+                            {{ form.forma_pagamento }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label label-mini">Cartão (Opcional)</label>
+                            {{ form.cartao }}
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end">
+                            <button type="submit" class="btn btn-pink w-100 fw-bold py-2">Salvar Gasto</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- LISTA DE GASTOS (Tela Cheia) -->
+        <div class="card card-form p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width: 10%;">Data</th>
+                            <th style="width: 40%;">Descrição</th>
+                            <th style="width: 20%;">Categoria</th>
+                            <th style="width: 15%;">Pagamento</th>
+                            <th class="text-end" style="width: 10%;">Valor</th>
+                            <th class="text-end pe-4" style="width: 5%;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for gasto in gastos %}
+                            <tr>
+                                <td class="ps-4 text-muted">{{ gasto.data|date:"d/m/Y" }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">
+                                        {% if gasto.cartao %}
+                                            <span class="badge bg-purple mb-1" style="font-size: 0.65rem;"><i class="bi bi-credit-card"></i> {{ gasto.cartao.nome }}</span> 
+                                        {% endif %}
+                                        {{ gasto.descricao }}
+                                    </div>
+                                    <small class="text-muted">{{ gasto.pessoa.nome }}</small>
+                                </td>
+                                <td>
+                                    {% if gasto.categoria.tipo == 'E' %}
+                                        <span class="badge bg-purple bg-opacity-75">{{ gasto.categoria.nome }}</span>
+                                    {% else %}
+                                        <span class="badge bg-blue bg-opacity-75">{{ gasto.categoria.nome }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted">{{ gasto.forma_pagamento.nome }}</td>
+                                <td class="text-end text-pink fw-bold">R$ {{ gasto.valor }}</td>
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'gasto_editar' gasto.id %}" class="btn btn-sm btn-link text-secondary p-1" title="Editar">
+                                        <i class="bi bi-pencil-square fs-5"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'gasto_excluir' gasto.id %}" class="d-inline"
+                                          onsubmit="return confirm('Excluir o gasto {{ gasto.descricao }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-1" title="Excluir">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                    Nenhum gasto lançado neste mês.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

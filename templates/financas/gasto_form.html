@@ -1,0 +1,59 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Editar Gasto - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 text-purple fw-bold">Editar Gasto</h5>
+                <a href="{% url 'gasto_lista' %}" class="btn btn-sm btn-outline-secondary">Voltar</a>
+            </div>
+            
+            <div class="card card-form p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Descrição</label>
+                        {{ form.descricao }}
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label label-mini">Valor (R$)</label>
+                            {{ form.valor }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label label-mini">Data</label>
+                            {{ form.data }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Categoria</label>
+                        {{ form.categoria }}
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label label-mini">Pessoa</label>
+                            {{ form.pessoa }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label label-mini">Forma de Pagamento</label>
+                            {{ form.forma_pagamento }}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label label-mini">Cartão (Opcional)</label>
+                        {{ form.cartao }}
+                    </div>
+
+                    <button type="submit" class="btn btn-pink w-100 fw-bold">Salvar Alterações</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

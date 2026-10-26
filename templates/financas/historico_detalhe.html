@@ -1,0 +1,96 @@
+{% extends 'financas/base.html' %}
+{% load formatacao %}
+
+{% block title %}Relatório de {{ mes }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold text-dark">Relatório: {{ mes }}</h5>
+        <a href="{% url 'historico_lista' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar ao Histórico</a>
+    </div>
+
+    <!-- Resumo -->
+    <div class="row g-2 mb-4">
+        <div class="col-4">
+            <div class="card card-resumo h-100 border-neon" style="border-left: 4px solid;">
+                <div class="card-body p-2 text-center">
+                    <div class="label-mini">Receitas</div>
+                    <div class="valor-destaque text-neon mt-1">R$ {{ total_receitas|moeda }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card card-resumo h-100 border-pink" style="border-left: 4px solid;">
+                <div class="card-body p-2 text-center">
+                    <div class="label-mini">Gastos</div>
+                    <div class="valor-destaque text-pink mt-1">R$ {{ total_gastos|moeda }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card card-resumo h-100 border-blue" style="border-left: 4px solid;">
+                <div class="card-body p-2 text-center">
+                    <div class="label-mini">Sobra</div>
+                    <div class="valor-destaque {% if sobra >= 0 %}text-blue{% else %}text-danger{% endif %} mt-1">R$ {{ sobra|moeda }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabelas de Receitas e Gastos -->
+    <div class="row g-3">
+        <div class="col-md-5">
+            <h6 class="mb-2 text-muted fw-bold">Receitas</h6>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle bg-white shadow-sm rounded">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th class="text-end">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in receitas %}
+                            <tr>
+                                <td>{{ r.data|date:"d/m" }}</td>
+                                <td>{{ r.descricao }}</td>
+                                <td class="text-end text-neon fw-bold">R$ {{ r.valor|moeda }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">Nenhuma receita.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h6 class="mb-2 text-muted fw-bold">Gastos</h6>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle bg-white shadow-sm rounded">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th class="text-end">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gastos %}
+                            <tr>
+                                <td>{{ g.data|date:"d/m" }}</td>
+                                <td>{{ g.descricao }}</td>
+                                <td><span class="badge {% if g.categoria.tipo == 'E' %}bg-purple{% else %}bg-blue{% endif %}">{{ g.categoria.nome }}</span></td>
+                                <td class="text-end text-pink fw-bold">R$ {{ g.valor|moeda }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted">Nenhum gasto.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

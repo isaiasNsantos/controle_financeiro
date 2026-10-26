@@ -1,0 +1,75 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Cartões - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-5">
+            <h5 class="mb-3 text-purple fw-bold">Novo Cartão</h5>
+            <div class="card card-form p-3">
+                <form method="post" action="{% url 'cartao_criar' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Nome do Cartão</label>
+                        {{ form.nome }}
+                        <div class="form-text small">Ex: Nubank Isaias, Inter Esposa.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Limite (R$)</label>
+                        {{ form.limite }}
+                    </div>
+                    <div class="mb-3 form-check">
+                        {{ form.ativo }}
+                        <label class="form-check-label">Ativo</label>
+                    </div>
+                    <button type="submit" class="btn btn-purple w-100">Salvar Cartão</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h5 class="mb-3 text-purple fw-bold">Meus Cartões</h5>
+            {% if cartoes %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nome</th>
+                                <th>Limite</th>
+                                <th>Ativo</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cartao in cartoes %}
+                                <tr>
+                                    <td class="fw-bold text-dark"><i class="bi bi-credit-card text-purple"></i> {{ cartao.nome }}</td>
+                                    <td>
+                                        {% if cartao.limite %}
+                                            R$ {{ cartao.limite }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if cartao.ativo %}✅{% else %}❌{% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'cartao_editar' cartao.id %}" class="btn btn-sm btn-outline-secondary">✏️</a>
+                                        <form method="post" action="{% url 'cartao_excluir' cartao.id %}" class="d-inline"
+                                              onsubmit="return confirm('Excluir o cartão {{ cartao.nome }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">Nenhum cartão cadastrado.</div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

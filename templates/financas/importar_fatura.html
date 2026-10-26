@@ -1,0 +1,154 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Importar Fatura - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-4">
+            <h5 class="mb-3 text-purple fw-bold">Ler Fatura PDF</h5>
+            <div class="card card-form p-3">
+                <!-- FORM 1: APENAS PARA LER O PDF -->
+                <form method="post" enctype="multipart/form-data" id="formLerPdf">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label label-mini">Arquivo PDF</label>
+                        <input type="file" name="arquivo_pdf" class="form-control" accept=".pdf" required>
+                    </div>
+                    <button type="submit" class="btn btn-purple w-100">Ler Fatura</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            {% if transacoes %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0 text-purple fw-bold">Transações Encontradas</h5>
+                    <span class="badge bg-pink fs-6">Total Lido: R$ {{ total }}</span>
+                </div>
+                
+                <div class="card card-form p-3 mb-4 bg-light border-purple">
+                    <!-- FORM 2: APENAS PARA SALVAR -->
+                    <form method="post" id="formSalvar">
+                        {% csrf_token %}
+                        <input type="hidden" name="salvar_importacao" value="1">
+
+                        <h6 class="fw-bold mb-3 text-pink"><i class="bi bi-check2-circle"></i> 1. Selecione o que importar</h6>
+                        
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm table-hover bg-white shadow-sm rounded align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40px;" class="text-center">
+                                            <input type="checkbox" class="form-check-input" id="checkTodos" checked>
+                                        </th>
+                                        <th>Data</th>
+                                        <th>Descrição</th>
+                                        <th class="text-end">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for t in transacoes %}
+                                        <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input check-linha" checked 
+                                                       data-data="{{ t.data }}" 
+                                                       data-descricao="{{ t.descricao }}" 
+                                                       data-valor="{{ t.valor }}">
+                                            </td>
+                                            <td>{{ t.data|date:"d/m/Y" }}</td>
+                                            <td class="fw-bold text-dark">{{ t.descricao }}</td>
+                                            <td class="text-end text-pink fw-bold">R$ {{ t.valor }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <h6 class="fw-bold mb-3 text-pink"><i class="bi bi-credit-card"></i> 2. Selecione o Cartão e Categoria</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label label-mini">Cartão</label>
+                                <select name="cartao" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for c in cartoes %}
+                                        <option value="{{ c.id }}">{{ c.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label label-mini">Categoria Padrão</label>
+                                <select name="categoria" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for c in categorias %}
+                                        <option value="{{ c.id }}">{{ c.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label label-mini">Pessoa</label>
+                                <select name="pessoa" class="form-select" required>
+                                    <option value="">Selecione...</option>
+                                    {% for p in pessoas %}
+                                        <option value="{{ p.id }}">{{ p.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- AQUI O JS VAI INJETAR OS CAMPOS ESCONDIDOS -->
+                        <div id="camposEscondidos"></div>
+
+                        <button type="submit" class="btn btn-neon w-100 fw-bold">Salvar Gastos Selecionados</button>
+                    </form>
+                </div>
+            {% elif request.method == 'POST' %}
+                <div class="alert alert-warning">Nenhuma transação encontrada ou houve um erro.</div>
+            {% else %}
+                <div class="alert alert-light border text-muted text-center mt-5 py-4">
+                    <i class="bi bi-file-earmark-pdf fs-1"></i><br>
+                    Selecione um PDF do Nubank ao lado para começar.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const checkTodos = document.getElementById('checkTodos');
+            if(checkTodos) {
+                checkTodos.addEventListener('change', function(e) {
+                    const checkboxes = document.querySelectorAll('.check-linha');
+                    checkboxes.forEach(cb => cb.checked = e.target.checked);
+                });
+            }
+
+            const formSalvar = document.getElementById('formSalvar');
+            if(formSalvar) {
+                formSalvar.addEventListener('submit', function(e) {
+                    const container = document.getElementById('camposEscondidos');
+                    container.innerHTML = ''; // Limpa qualquer resíduo
+
+                    const checkboxes = document.querySelectorAll('.check-linha:checked');
+                    
+                    if (checkboxes.length === 0) {
+                        e.preventDefault();
+                        alert('Você precisa selecionar pelo menos uma transação.');
+                        return;
+                    }
+
+                    // Para cada linha marcada, cria inputs invisíveis no formulário
+                    checkboxes.forEach(cb => {
+                        const data = cb.getAttribute('data-data');
+                        const desc = cb.getAttribute('data-descricao');
+                        const valor = cb.getAttribute('data-valor');
+
+                        container.innerHTML += `<input type="hidden" name="data[]" value="${data}">`;
+                        container.innerHTML += `<input type="hidden" name="descricao[]" value="${desc}">`;
+                        container.innerHTML += `<input type="hidden" name="valor[]" value="${valor}">`;
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}
