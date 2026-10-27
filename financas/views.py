@@ -1856,6 +1856,7 @@ def importar_fatura(request):
 # ==========================================
 # PROJEÇÃO 12 MESES
 # ==========================================
+
 @login_required
 def projecao(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -1902,7 +1903,10 @@ def projecao(request):
         if id_mes not in totais_colunas:
             continue
 
-        nome_limpo = re.sub(r'- Parcela \d+/\d+', '', g.descricao).strip()
+        # MÁGICA AQUI: Remove o padrão " (1/10)", " - Parcela 1/10" ou " (1/10) " do final do nome
+        # O Regex procura qualquer número entre parênteses ou após a palavra "Parcela"
+        nome_limpo = re.sub(r'\s*\(\d+/\d+\)|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
+        
         if not nome_limpo:
             nome_limpo = g.descricao
             
@@ -1938,6 +1942,89 @@ def projecao(request):
         'ano_posterior': data_posterior.year,
         'mes_posterior': data_posterior.month,
     })
+
+# @login_required
+# def projecao(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return render(request, 'financas/projecao.html', {'sem_mes_ativo': True})
+
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+    
+#     ano_base = int(request.GET.get('ano', mes_ativo.ano))
+#     mes_base = int(request.GET.get('mes', mes_ativo.mes))
+    
+#     nomes_meses = {
+#         1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+#         7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+#     }
+
+#     meses_colunas = []
+#     data_atual = date(ano_base, mes_base, 1)
+    
+#     for i in range(12):
+#         mes_alvo = data_atual + relativedelta(months=i)
+#         meses_colunas.append({
+#             'id': f"{mes_alvo.year}-{mes_alvo.month}",
+#             'nome': f"{nomes_meses[mes_alvo.month]}/{mes_alvo.year}", 
+#             'ano': mes_alvo.year,
+#             'mes': mes_alvo.month,
+#         })
+
+#     data_anterior = data_atual - relativedelta(months=1)
+#     data_posterior = data_atual + relativedelta(months=1)
+    
+#     anos_filtro = list(set([m['ano'] for m in meses_colunas]))
+    
+#     gastos_periodo = Gasto.objects.filter(
+#         mes__ano__in=anos_filtro
+#     ).select_related('mes', 'cartao')
+
+#     agrupado = {}
+#     totais_colunas = {m['id']: Decimal('0') for m in meses_colunas}
+
+#     for g in gastos_periodo:
+#         id_mes = f"{g.mes.ano}-{g.mes.mes}"
+        
+#         if id_mes not in totais_colunas:
+#             continue
+
+#         nome_limpo = re.sub(r'- Parcela \d+/\d+', '', g.descricao).strip()
+#         if not nome_limpo:
+#             nome_limpo = g.descricao
+            
+#         if nome_limpo not in agrupado:
+#             agrupado[nome_limpo] = {}
+            
+#         if id_mes not in agrupado[nome_limpo]:
+#             agrupado[nome_limpo][id_mes] = Decimal('0')
+            
+#         agrupado[nome_limpo][id_mes] += g.valor
+#         totais_colunas[id_mes] += g.valor
+
+#     linhas_projecao = []
+#     for nome_gasto, valores_meses in agrupado.items():
+#         linhas_projecao.append({
+#             'categoria': nome_gasto,
+#             'valores': valores_meses
+#         })
+        
+#     linhas_projecao = sorted(linhas_projecao, key=lambda x: x['categoria'].lower())
+
+#     return render(request, 'financas/projecao.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'meses_colunas': meses_colunas,
+#         'linhas_projecao': linhas_projecao,
+#         'totais_colunas': totais_colunas,
+#         'ano_base': ano_base,
+#         'mes_base': mes_base,
+#         'mes_base_nome': f"{nomes_meses[mes_base]}/{ano_base}",
+#         'ano_anterior': data_anterior.year,
+#         'mes_anterior': data_anterior.month,
+#         'ano_posterior': data_posterior.year,
+#         'mes_posterior': data_posterior.month,
+#     })
 
 # ==========================================
 # HISTÓRICO

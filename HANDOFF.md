@@ -75,6 +75,14 @@ bash
 cd ~/controle_financeiro
 workon venv_financas
 git pull
+
+ou 
+
+cd ~/controle_financeiro
+workon venv_financas
+python manage.py collectstatic
+
+
 Passo 3: Rodar comandos específicos (só se necessário)
 Ainda no console, você deve rodar comandos extras apenas se:
 
