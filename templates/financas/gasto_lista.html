@@ -10,10 +10,10 @@
     {% else %}
         <!-- CABEÇALHO -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-            <h5 class="mb-0 text-purple fw-bold">Gastos — {{ mes_ativo }}</h5>
+            <h5 class="mb-0 text-roxo fw-bold">Gastos — {{ mes_ativo }}</h5>
             <div class="d-flex gap-2 align-items-center">
-                <span class="badge bg-pink fs-6">Total: R$ {{ total }}</span>
-                <button class="btn btn-pink fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoGasto">
+                <span class="badge bg-vermelho fs-6">Total: R$ {{ total }}</span>
+                <button class="btn btn-vermelho fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoGasto">
                     <i class="bi bi-plus-circle"></i> Novo Gasto
                 </button>
             </div>
@@ -21,8 +21,8 @@
 
         <!-- FORMULÁRIO (Escondido) -->
         <div class="collapse mb-4" id="formNovoGasto">
-            <div class="card card-form p-4 border-top border-4" style="border-top-color: #ec4899 !important;">
-                <h6 class="fw-bold text-pink mb-3"><i class="bi bi-pencil-square"></i> Lançar Novo Gasto</h6>
+            <div class="card card-form p-4 border-top border-4" style="border-top-color: #dc2626 !important;">
+                <h6 class="fw-bold text-vermelho mb-3"><i class="bi bi-pencil-square"></i> Lançar Novo Gasto</h6>
                 <form method="post" action="{% url 'gasto_criar' %}">
                     {% csrf_token %}
                     <div class="row g-3">
@@ -30,52 +30,59 @@
                             <label class="form-label label-mini">Descrição</label>
                             {{ form.descricao }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label label-mini">Valor Total (R$)</label>
                             {{ form.valor }}
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label label-mini">Parcelas</label>
-                            {{ form.parcelas }}
+                            <label class="form-label label-mini">Parcela Atual</label>
+                            {{ form.parcela_atual }}
                         </div>
+                        <div class="col-md-2">
+                            <label class="form-label label-mini">Total Parcelas</label>
+                            {{ form.total_parcelas }}
+                        </div>
+                        
                         <div class="col-md-3">
-                            <label class="form-label label-mini">Data</label>
+                            <label class="form-label label-mini">Data da Compra</label>
                             {{ form.data }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label label-mini">Categoria</label>
                             {{ form.categoria }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label label-mini">Pessoa</label>
                             {{ form.pessoa }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label label-mini">Pagamento</label>
                             {{ form.forma_pagamento }}
                         </div>
+                        
                         <div class="col-md-4">
                             <label class="form-label label-mini">Cartão (Opcional)</label>
                             {{ form.cartao }}
                         </div>
                         <div class="col-md-8 d-flex align-items-end">
-                            <button type="submit" class="btn btn-pink w-100 fw-bold py-2">Salvar Gasto</button>
+                            <button type="submit" class="btn btn-vermelho w-100 fw-bold py-2">Salvar Gasto</button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- LISTA DE GASTOS (Tela Cheia) -->
+        <!-- LISTA DE GASTOS -->
         <div class="card card-form p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                <table class="table table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4" style="width: 10%;">Data</th>
+                            <th style="width: 15%;">Pessoa</th>
                             <th style="width: 40%;">Descrição</th>
-                            <th style="width: 20%;">Categoria</th>
-                            <th style="width: 15%;">Pagamento</th>
+                            <th style="width: 15%;">Categoria</th>
+                            <th style="width: 10%;">Pagamento</th>
                             <th class="text-end" style="width: 10%;">Valor</th>
                             <th class="text-end pe-4" style="width: 5%;">Ações</th>
                         </tr>
@@ -84,24 +91,22 @@
                         {% for gasto in gastos %}
                             <tr>
                                 <td class="ps-4 text-muted">{{ gasto.data|date:"d/m/Y" }}</td>
+                                <td class="fw-bold text-secondary">{{ gasto.pessoa.nome }}</td>
                                 <td>
-                                    <div class="fw-bold text-dark">
-                                        {% if gasto.cartao %}
-                                            <span class="badge bg-purple mb-1" style="font-size: 0.65rem;"><i class="bi bi-credit-card"></i> {{ gasto.cartao.nome }}</span> 
-                                        {% endif %}
-                                        {{ gasto.descricao }}
-                                    </div>
-                                    <small class="text-muted">{{ gasto.pessoa.nome }}</small>
+                                    <span class="fw-bold text-dark">{{ gasto.descricao }}</span>
+                                    {% if gasto.cartao %}
+                                        <span class="badge bg-roxo ms-1" style="font-size: 0.65rem;"><i class="bi bi-credit-card"></i> {{ gasto.cartao.nome }}</span>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {% if gasto.categoria.tipo == 'E' %}
-                                        <span class="badge bg-purple bg-opacity-75">{{ gasto.categoria.nome }}</span>
+                                        <span class="badge bg-roxo bg-opacity-75">{{ gasto.categoria.nome }}</span>
                                     {% else %}
-                                        <span class="badge bg-blue bg-opacity-75">{{ gasto.categoria.nome }}</span>
+                                        <span class="badge bg-azul bg-opacity-75">{{ gasto.categoria.nome }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-muted">{{ gasto.forma_pagamento.nome }}</td>
-                                <td class="text-end text-pink fw-bold">R$ {{ gasto.valor }}</td>
+                                <td class="text-muted" style="font-size: 0.8rem;">{{ gasto.forma_pagamento.nome }}</td>
+                                <td class="text-end text-vermelho fw-bold">R$ {{ gasto.valor }}</td>
                                 <td class="text-end pe-4">
                                     <a href="{% url 'gasto_editar' gasto.id %}" class="btn btn-sm btn-link text-secondary p-1" title="Editar">
                                         <i class="bi bi-pencil-square fs-5"></i>
@@ -117,7 +122,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
+                                <td colspan="7" class="text-center text-muted py-5">
                                     <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
                                     Nenhum gasto lançado neste mês.
                                 </td>
