@@ -135,7 +135,14 @@
             </div>
 
             <!-- BOTÃO SAIR -->
-            <div class="ms-auto ms-md-3">
+                        <!-- BOTÕES DE ACESSO (ADMIN E SAIR) -->
+            <div class="ms-auto ms-md-3 d-flex gap-2">
+                <!-- BOTÃO ADMIN -->
+                <a href="/admin/" target="_blank" class="btn-logout" style="background: #d1b3e2; color: #222 !important; text-decoration: none;">
+                    <i class="bi bi-gear-fill"></i> Admin
+                </a>
+                
+                <!-- BOTÃO SAIR -->
                 <form method="post" action="{% url 'logout' %}" class="d-inline m-0 p-0">
                     {% csrf_token %}
                     <button type="submit" class="btn-logout">
