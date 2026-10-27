@@ -410,6 +410,75 @@ def gasto_lista(request):
         'total': total,
     })
 
+from dateutil.relativedelta import relativedelta
+import uuid
+from django.shortcuts import redirect, render
+from django.contrib import messages
+
+def gasto_novo(request):
+    if request.method == 'POST':
+        form = GastoForm(request.POST)
+        if form.is_valid():
+            gasto = form.save(commit=False)
+            
+            parcela_atual = form.cleaned_data.get('parcela_atual') or 1
+            total_parcelas = form.cleaned_data.get('total_parcelas') or 1
+
+            if total_parcelas > 1:
+                grupo_id = uuid.uuid4()
+                data_base = gasto.data
+                
+                # O mês ativo atual (que veio do form ou do sistema)
+                mes_base = gasto.mes 
+
+                # Loop para criar as parcelas
+                for i in range(parcela_atual, total_parcelas + 1):
+                    # Calcula a data do mês futuro
+                    nova_data = data_base + relativedelta(months=(i - parcela_atual))
+                    
+                    # Tenta encontrar o mês correspondente no banco
+                    # (Supondo que seu model Mes tenha campos 'ano' e 'mes' ou algo assim)
+                    try:
+                        # Se o seu model Mes for só uma string tipo "Nov/2026", a busca seria diferente.
+                        # Aqui tô assumindo que ele tem campos 'ano' e 'mes_numero' (1 a 12).
+                        # AJUSTE ESSA LINHA ABAIXO CONFORME O SEU MODEL MES:
+                        mes_parcela = Mes.objects.get(ano=nova_data.year, mes_numero=nova_data.month) 
+                    except Mes.DoesNotExist:
+                        # Se o mês não existir no banco, a gente pula ou cria. 
+                        # O ideal é avisar o usuário.
+                        messages.error(request, f"O mês {nova_data.strftime('%m/%Y')} não existe no sistema. Crie-o antes de parcelar.")
+                        return redirect('gasto_novo') # Volta pro form
+
+                    # Cria o gasto para aquele mês
+                    novo_gasto = Gasto(
+                        mes=mes_parcela, # O mês encontrado
+                        descricao=gasto.descricao,
+                        valor=gasto.valor, # Mantém o valor de R$ 128,62
+                        data=nova_data,
+                        categoria=gasto.categoria,
+                        pessoa=gasto.pessoa,
+                        forma_pagamento=gasto.forma_pagamento,
+                        cartao=gasto.cartao,
+                        parcela_atual=i,
+                        total_parcelas=total_parcelas,
+                        grupo_parcelas=grupo_id
+                    )
+                    novo_gasto.save()
+                
+                messages.success(request, f"Gasto parcelado em {total_parcelas}x com sucesso!")
+                return redirect('gasto_lista')
+            
+            else:
+                # Se não for parcelado, salva normal
+                gasto.parcela_atual = 1
+                gasto.total_parcelas = 1
+                gasto.save()
+                messages.success(request, "Gasto cadastrado com sucesso!")
+                return redirect('gasto_lista')
+    else:
+        form = GastoForm()
+
+    return render(request, 'financas/gasto_form.html', {'form': form})
 @login_required
 def gasto_criar(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -419,53 +488,55 @@ def gasto_criar(request):
     if request.method == 'POST':
         form = GastoForm(request.POST)
         if form.is_valid():
-            gasto_base = form.save(commit=False)
+            gasto = form.save(commit=False)
             mes_ativo = Mes.objects.get(id=mes_ativo_id)
             
             parcela_atual = form.cleaned_data.get('parcela_atual') or 1
             total_parcelas = form.cleaned_data.get('total_parcelas') or 1
             
-            # Se o cara digitou a parcela atual maior que o total, corrige
             if parcela_atual > total_parcelas:
                 parcela_atual = total_parcelas
-                
-            valor_total = gasto_base.valor
-            
+
             if total_parcelas > 1:
-                # Valor de cada parcela
-                valor_parcela = round(valor_total / total_parcelas, 2)
-                data_base = gasto_base.data
+                grupo_id = uuid.uuid4()
+                data_base = gasto.data
                 
-                # Loop para criar todas as parcelas (do número atual até o total)
+                # Loop para criar as parcelas
                 for i in range(parcela_atual, total_parcelas + 1):
-                    # Avança a data a partir de HOJE (a parcela atual é lançada no mês ativo)
-                    meses_a_avancar = i - parcela_atual
-                    nova_data = data_base + relativedelta(months=meses_a_avancar)
+                    nova_data = data_base + relativedelta(months=(i - parcela_atual))
                     
-                    # Descobre o mês da parcela
+                    # Se for a primeira parcela, usa o mês ativo. Se não, busca o mês futuro.
                     if i == parcela_atual:
                         mes_parcela = mes_ativo
                     else:
                         mes_parcela, _ = Mes.objects.get_or_create(ano=nova_data.year, mes=nova_data.month)
-                    
-                    Gasto.objects.create(
+
+                    novo_gasto = Gasto(
                         mes=mes_parcela,
-                        descricao=f"{gasto_base.descricao} ({i}/{total_parcelas})",
-                        valor=valor_parcela,
+                        descricao=f"{gasto.descricao} ({i}/{total_parcelas})",
+                        valor=gasto.valor, # MANTÉM O VALOR DA PARCELA
                         data=nova_data,
-                        categoria=gasto_base.categoria,
-                        pessoa=gasto_base.pessoa,
-                        forma_pagamento=gasto_base.forma_pagamento,
-                        cartao=gasto_base.cartao
+                        categoria=gasto.categoria,
+                        pessoa=gasto.pessoa,
+                        forma_pagamento=gasto.forma_pagamento,
+                        cartao=gasto.cartao,
+                        parcela_atual=i,
+                        total_parcelas=total_parcelas,
+                        grupo_parcelas=grupo_id
                     )
-                messages.success(request, f'Gasto parcelado lançado! Parcelas {parcela_atual}/{total_parcelas} até {total_parcelas}/{total_parcelas}.')
-            else:
-                # Se for 1 única parcela, salva normal
-                gasto_base.mes = mes_ativo
-                gasto_base.save()
-                messages.success(request, 'Gasto lançado com sucesso!')
+                    novo_gasto.save()
                 
-            return redirect('gasto_lista')
+                messages.success(request, f"Gasto parcelado em {total_parcelas}x com sucesso!")
+                return redirect('gasto_lista')
+            
+            else:
+                # Se não for parcelado, salva normal
+                gasto.mes = mes_ativo
+                gasto.parcela_atual = 1
+                gasto.total_parcelas = 1
+                gasto.save()
+                messages.success(request, "Gasto cadastrado com sucesso!")
+                return redirect('gasto_lista')
     else:
         form = GastoForm()
 
@@ -479,6 +550,76 @@ def gasto_criar(request):
         'form': form,
         'total': sum(g.valor for g in gastos),
     })
+
+# @login_required
+# def gasto_criar(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return redirect('mes_lista')
+
+#     if request.method == 'POST':
+#         form = GastoForm(request.POST)
+#         if form.is_valid():
+#             gasto_base = form.save(commit=False)
+#             mes_ativo = Mes.objects.get(id=mes_ativo_id)
+            
+#             parcela_atual = form.cleaned_data.get('parcela_atual') or 1
+#             total_parcelas = form.cleaned_data.get('total_parcelas') or 1
+            
+#             # Se o cara digitou a parcela atual maior que o total, corrige
+#             if parcela_atual > total_parcelas:
+#                 parcela_atual = total_parcelas
+                
+#             valor_total = gasto_base.valor
+            
+#             if total_parcelas > 1:
+#                 # Valor de cada parcela
+#                 valor_parcela = round(valor_total / total_parcelas, 2)
+#                 data_base = gasto_base.data
+                
+#                 # Loop para criar todas as parcelas (do número atual até o total)
+#                 for i in range(parcela_atual, total_parcelas + 1):
+#                     # Avança a data a partir de HOJE (a parcela atual é lançada no mês ativo)
+#                     meses_a_avancar = i - parcela_atual
+#                     nova_data = data_base + relativedelta(months=meses_a_avancar)
+                    
+#                     # Descobre o mês da parcela
+#                     if i == parcela_atual:
+#                         mes_parcela = mes_ativo
+#                     else:
+#                         mes_parcela, _ = Mes.objects.get_or_create(ano=nova_data.year, mes=nova_data.month)
+                    
+#                     Gasto.objects.create(
+#                         mes=mes_parcela,
+#                         descricao=f"{gasto_base.descricao} ({i}/{total_parcelas})",
+#                         valor=valor_parcela,
+#                         data=nova_data,
+#                         categoria=gasto_base.categoria,
+#                         pessoa=gasto_base.pessoa,
+#                         forma_pagamento=gasto_base.forma_pagamento,
+#                         cartao=gasto_base.cartao
+#                     )
+#                 messages.success(request, f'Gasto parcelado lançado! Parcelas {parcela_atual}/{total_parcelas} até {total_parcelas}/{total_parcelas}.')
+#             else:
+#                 # Se for 1 única parcela, salva normal
+#                 gasto_base.mes = mes_ativo
+#                 gasto_base.save()
+#                 messages.success(request, 'Gasto lançado com sucesso!')
+                
+#             return redirect('gasto_lista')
+#     else:
+#         form = GastoForm()
+
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#     gastos = Gasto.objects.filter(mes=mes_ativo)
+
+#     return render(request, 'financas/gasto_lista.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'gastos': gastos,
+#         'form': form,
+#         'total': sum(g.valor for g in gastos),
+#     })
 
 # @login_required
 # def gasto_criar(request):

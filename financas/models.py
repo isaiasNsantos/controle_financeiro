@@ -153,7 +153,8 @@ class Cartao(models.Model):
     def __str__(self):
         return self.nome
 
-# 2. DEPOIS O GASTO
+import uuid # Coloca no topo do models.py
+
 class Gasto(models.Model):
     mes = models.ForeignKey(Mes, on_delete=models.CASCADE, related_name='gastos')
     descricao = models.CharField(max_length=100)
@@ -162,9 +163,12 @@ class Gasto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='gastos')
     pessoa = models.ForeignKey(Pessoa, on_delete=models.PROTECT, related_name='gastos')
     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, related_name='gastos')
-    
-    # O Cartão agora pode ser usado aqui porque já foi declarado lá em cima
     cartao = models.ForeignKey(Cartao, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
+    
+    # NOVOS CAMPOS
+    parcela_atual = models.PositiveIntegerField(null=True, blank=True)
+    total_parcelas = models.PositiveIntegerField(null=True, blank=True)
+    grupo_parcelas = models.UUIDField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Gasto"
@@ -173,6 +177,27 @@ class Gasto(models.Model):
 
     def __str__(self):
         return f"{self.descricao} - R$ {self.valor}"
+
+# # 2. DEPOIS O GASTO
+# class Gasto(models.Model):
+#     mes = models.ForeignKey(Mes, on_delete=models.CASCADE, related_name='gastos')
+#     descricao = models.CharField(max_length=100)
+#     valor = models.DecimalField(max_digits=10, decimal_places=2)
+#     data = models.DateField()
+#     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='gastos')
+#     pessoa = models.ForeignKey(Pessoa, on_delete=models.PROTECT, related_name='gastos')
+#     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, related_name='gastos')
+    
+#     # O Cartão agora pode ser usado aqui porque já foi declarado lá em cima
+#     cartao = models.ForeignKey(Cartao, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
+
+#     class Meta:
+#         verbose_name = "Gasto"
+#         verbose_name_plural = "Gastos"
+#         ordering = ['-data']
+
+#     def __str__(self):
+#         return f"{self.descricao} - R$ {self.valor}"
 
 class Divida(models.Model):
     descricao = models.CharField(max_length=100)
