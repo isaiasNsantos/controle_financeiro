@@ -11,74 +11,98 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
     <style>
-        /* NAVBAR CINZA E ELEGANTE */
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+
+        body { 
+            background-color: #fcf9f5; 
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: #333; 
+        }
+
+        /* MENU CADERNO */
         .navbar-custom {
-            background-color: #f1f5f9; /* Cinza clarinho */
-            border-bottom: 1px solid #e2e8f0;
+            background-color: #f1f5f9;
+            border-bottom: 2px solid #222;
             padding: 0.5rem 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
         .navbar-brand {
-            font-weight: 800;
+            font-family: 'Architects Daughter', cursive;
+            font-weight: bold;
             color: #1e1b4b !important;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             letter-spacing: -0.5px;
         }
 
         .nav-link-custom {
             color: #475569 !important;
             font-weight: 600;
-            font-size: 0.8rem;
-            padding: 0.4rem 0.8rem !important;
-            border-radius: 6px;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.6rem !important;
+            border-radius: 4px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             text-decoration: none;
+            font-family: 'Patrick Hand', cursive;
         }
         
         .nav-link-custom:hover, .nav-link-custom.active {
-            background-color: #ffffff;
+            background-color: #fff;
             color: #8b5cf6 !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 2px 2px 0px #222;
+            border: 1px solid #222;
         }
 
-        .nav-link-custom i {
-            color: #94a3b8;
-        }
-        .nav-link-custom:hover i, .nav-link-custom.active i {
-            color: #8b5cf6;
-        }
-
-        /* BOTÃO SAIR */
         .btn-logout {
             color: #ef4444 !important;
             background: #fee2e2;
-            border: none;
+            border: 2px solid #222;
             font-weight: 700;
             font-size: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 5px;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            transition: 0.2s;
+            gap: 4px;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            box-shadow: 2px 2px 0px #222;
+            transition: 0.1s;
+            font-family: 'Patrick Hand', cursive;
         }
+        .btn-logout:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222; background: #fecaca; }
 
-        .btn-logout:hover {
-            background-color: #fecaca;
-        }
-
-        /* SCROLL MOBILE */
-        .nav-scroll {
-            overflow-x: auto;
-            flex-wrap: nowrap;
-            white-space: nowrap;
-            scrollbar-width: none;
-            padding-bottom: 2px;
-        }
+        .nav-scroll { overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; }
         .nav-scroll::-webkit-scrollbar { display: none; }
+
+        /* ALERTAS POST-IT */
+        .alert-postit {
+            border: 2px solid #222 !important;
+            box-shadow: 4px 4px 0px #222;
+            border-radius: 2px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            transform: rotate(-1deg);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .alert-success.alert-postit { background-color: #b4e3d3; color: #222; }
+        .alert-danger.alert-postit { background-color: #f7b2bd; color: #222; }
+        .alert-warning.alert-postit { background-color: #fce8a1; color: #222; }
+        .alert-info.alert-postit { background-color: #a8c8f0; color: #222; }
+
+        /* FOOTER */
+        .footer-journal {
+            text-align: center;
+            font-family: 'Patrick Hand', cursive;
+            color: #a39f98;
+            margin-top: 40px;
+            padding-bottom: 20px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -86,15 +110,15 @@
         <div class="container-fluid px-3 px-md-4">
             
             <!-- LOGO -->
-            <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="/financas/">
-                <div style="background: #8b5cf6; color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                    <i class="bi bi-wallet2" style="font-size: 0.9rem;"></i>
+            <a class="navbar-brand d-flex align-items-center gap-2 me-3" href="/financas/">
+                <div style="background: #8b5cf6; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 2px solid #222; box-shadow: 2px 2px 0px #222;">
+                    <i class="bi bi-wallet2" style="font-size: 1rem;"></i>
                 </div>
                 <span class="d-none d-sm-block">Meu Financeiro</span>
             </a>
 
             <!-- MENU -->
-            <div class="navbar-nav flex-row nav-scroll align-items-center gap-2">
+            <div class="navbar-nav flex-row nav-scroll align-items-center gap-1">
                 <a class="nav-link-custom" href="/financas/"><i class="bi bi-grid-1x2"></i> Dash</a>
                 <a class="nav-link-custom" href="/financas/receitas/"><i class="bi bi-arrow-down-circle"></i> Receitas</a>
                 <a class="nav-link-custom" href="/financas/gastos/"><i class="bi bi-arrow-up-circle"></i> Gastos</a>
@@ -122,17 +146,28 @@
     </nav>
 
     <div class="container-fluid px-3 px-md-4 pb-5">
+        <!-- MENSAGENS (POST-IT) -->
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm border-0" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-postit alert-dismissible fade show" role="alert">
+                    <div>
+                        {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                        {% elif message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                        {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.8rem;"></button>
                 </div>
             {% endfor %}
         {% endif %}
 
         {% block content %}
         {% endblock %}
+
+        <!-- FOOTER -->
+        <div class="footer-journal">
+            ✏️ Desenhado e organizado por você.
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

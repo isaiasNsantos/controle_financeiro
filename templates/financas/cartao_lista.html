@@ -3,73 +3,64 @@
 {% block title %}Cartões - Controle Financeiro{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-5">
-            <h5 class="mb-3 text-purple fw-bold">Novo Cartão</h5>
-            <div class="card card-form p-3">
-                <form method="post" action="{% url 'cartao_criar' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Nome do Cartão</label>
-                        {{ form.nome }}
-                        <div class="form-text small">Ex: Nubank Isaias, Inter Esposa.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Limite (R$)</label>
-                        {{ form.limite }}
-                    </div>
-                    <div class="mb-3 form-check">
-                        {{ form.ativo }}
-                        <label class="form-check-label">Ativo</label>
-                    </div>
-                    <button type="submit" class="btn btn-purple w-100">Salvar Cartão</button>
-                </form>
-            </div>
-        </div>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; text-align: center; margin-bottom: 20px; color: #222; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+        .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
+        .btn-journal:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #222; background: #81c7b3; color: #222; }
+        .btn-journal-danger { background: #f7b2bd; }
+        .btn-journal-danger:hover { background: #f28a9a; }
+        .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
+        .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+    </style>
 
-        <div class="col-md-7">
-            <h5 class="mb-3 text-purple fw-bold">Meus Cartões</h5>
-            {% if cartoes %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Nome</th>
-                                <th>Limite</th>
-                                <th>Ativo</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cartao in cartoes %}
-                                <tr>
-                                    <td class="fw-bold text-dark"><i class="bi bi-credit-card text-purple"></i> {{ cartao.nome }}</td>
-                                    <td>
-                                        {% if cartao.limite %}
-                                            R$ {{ cartao.limite }}
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if cartao.ativo %}✅{% else %}❌{% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{% url 'cartao_editar' cartao.id %}" class="btn btn-sm btn-outline-secondary">✏️</a>
-                                        <form method="post" action="{% url 'cartao_excluir' cartao.id %}" class="d-inline"
-                                              onsubmit="return confirm('Excluir o cartão {{ cartao.nome }}?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <div class="journal-bg">
+        <div class="main-title">CARTÕES</div>
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card card-journal p-3 mb-4">
+                    <h5 style="font-family: 'Architects Daughter';">Novo Cartão</h5>
+                    <form method="post" action="{% url 'cartao_criar' %}">
+                        {% csrf_token %}
+                        <div class="mb-2"><label class="form-label fw-bold">Nome</label>{{ form.nome }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Limite (R$)</label>{{ form.limite }}</div>
+                        <div class="mb-3 form-check">{{ form.ativo }}<label class="form-check-label">Ativo</label></div>
+                        <button type="submit" class="btn btn-journal w-100">Salvar</button>
+                    </form>
                 </div>
-            {% else %}
-                <div class="alert alert-info">Nenhum cartão cadastrado.</div>
-            {% endif %}
+            </div>
+
+            <div class="col-md-7">
+                <div class="card card-journal p-3">
+                    <h5 style="font-family: 'Architects Daughter';">Meus Cartões</h5>
+                    {% if cartoes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-journal align-middle mb-0">
+                                <thead><tr><th>Nome</th><th>Limite</th><th>Ações</th></tr></thead>
+                                <tbody>
+                                    {% for cartao in cartoes %}
+                                        <tr>
+                                            <td class="fw-bold">{{ cartao.nome }}</td>
+                                            <td>{% if cartao.limite %}R$ {{ cartao.limite }}{% else %}-{% endif %}</td>
+                                            <td>
+                                                <a href="{% url 'cartao_editar' cartao.id %}" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.8rem;">✏️</a>
+                                                <form method="post" action="{% url 'cartao_excluir' cartao.id %}" class="d-inline" onsubmit="return confirm('Excluir?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-journal btn-journal-danger py-0 px-2" style="font-size:0.8rem;">🗑️</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted mt-3">Nenhum cartão cadastrado.</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

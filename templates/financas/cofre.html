@@ -4,146 +4,119 @@
 {% block title %}Cofre - Controle Financeiro{% endblock %}
 
 {% block content %}
-    <h5 class="mb-3 text-purple fw-bold"><i class="bi bi-safe"></i> Meu Cofre</h5>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+        .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
+        .btn-journal:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #222; background: #81c7b3; color: #222; }
+        .btn-journal-danger { background: #f7b2bd; }
+        .btn-journal-danger:hover { background: #f28a9a; }
+        .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
+        .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+        .progress-journal { border: 2px solid #222; border-radius: 4px; height: 16px !important; background-color: #fff; }
+    </style>
 
-    <!-- CARDS DE RESUMO -->
-    <div class="row g-3 mb-4">
-        <!-- Reserva de Emergência -->
-        <div class="col-md-6">
-            <div class="card card-resumo h-100 border-neon" style="border-left: 5px solid;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="label-mini mb-0">Reserva de Emergência</h6>
-                        <i class="bi bi-shield-check text-neon fs-4"></i>
+    <div class="journal-bg">
+        <div class="main-title mb-4">MEU COFRE</div>
+
+        <!-- CARDS DE RESUMO -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card card-journal h-100 p-3">
+                    <h5 style="font-family: 'Architects Daughter';"><i class="bi bi-shield-check"></i> Reserva de Emergência</h5>
+                    <div class="d-flex justify-content-between align-items-end mt-2 mb-2">
+                        <div style="font-size: 1.8rem; font-weight: bold; color: #16a34a;">R$ {{ reserva.valor_guardado|moeda }}</div>
+                        <div style="font-size: 1rem; color: #777;">Meta: R$ {{ meta_reserva|moeda }}</div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-end mb-2">
-                        <div class="valor-destaque text-neon">R$ {{ reserva.valor_guardado|moeda }}</div>
-                        <div class="text-muted small">Meta: R$ {{ meta_reserva|moeda }}</div>
+                    <div class="progress progress-journal">
+                        <div class="progress-bar" style="width: {% if pct_reserva > 100 %}100{% else %}{{ pct_reserva }}{% endif %}%; background-color: #b4e3d3;"></div>
                     </div>
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-neon" style="width: {% if pct_reserva > 100 %}100{% else %}{{ pct_reserva }}{% endif %}%"></div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-2 small text-muted">
+                    <div class="d-flex justify-content-between mt-1" style="font-size: 0.9rem;">
                         <span>{{ pct_reserva|floatformat:1 }}% da meta</span>
                         <span>Alvo: {{ reserva.meses_alvo }} meses</span>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Dívidas -->
-        <div class="col-md-6">
-            <div class="card card-resumo h-100 border-pink" style="border-left: 5px solid;">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="label-mini mb-0">Total de Dívidas Ativas</h6>
-                        <i class="bi bi-exclamation-triangle text-pink fs-4"></i>
-                    </div>
-                    <div class="valor-destaque text-pink">R$ {{ total_divida|moeda }}</div>
-                    <div class="text-muted small mt-2">Pague primeiro as com maiores juros!</div>
+            <div class="col-md-6">
+                <div class="card card-journal h-100 p-3">
+                    <h5 style="font-family: 'Architects Daughter';"><i class="bi bi-exclamation-triangle"></i> Total de Dívidas</h5>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: #dc2626; margin-top: 10px;">R$ {{ total_divida|moeda }}</div>
+                    <div style="font-size: 0.9rem; color: #777; margin-top: 5px;">Pague primeiro as com maiores juros!</div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="row g-3">
-        <!-- FORMULÁRIOS -->
-        <div class="col-md-4">
-            <h6 class="mb-2 text-muted fw-bold">Atualizar Reserva</h6>
-            <div class="card card-form p-3 mb-3">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="salvar_reserva" value="1">
-                    <div class="mb-2">
-                        <label class="form-label label-mini">Valor Guardado (R$)</label>
-                        {{ form_reserva.valor_guardado }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Meses Alvo</label>
-                        {{ form_reserva.meses_alvo }}
-                    </div>
-                    <button type="submit" class="btn btn-neon w-100 fw-bold">Salvar Reserva</button>
-                </form>
+        <div class="row g-3">
+            <!-- FORMULÁRIOS -->
+            <div class="col-md-4">
+                <div class="card card-journal p-3 mb-3">
+                    <h5 style="font-family: 'Architects Daughter';">Atualizar Reserva</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="salvar_reserva" value="1">
+                        <div class="mb-2"><label class="form-label fw-bold">Valor Guardado</label>{{ form_reserva.valor_guardado }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Meses Alvo</label>{{ form_reserva.meses_alvo }}</div>
+                        <button type="submit" class="btn btn-journal w-100 mt-2">Salvar</button>
+                    </form>
+                </div>
+
+                <div class="card card-journal p-3">
+                    <h5 style="font-family: 'Architects Daughter';">Nova Dívida</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="salvar_divida" value="1">
+                        <div class="mb-2"><label class="form-label fw-bold">Descrição</label>{{ form_divida.descricao }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Valor Total</label>{{ form_divida.valor_total }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Já Pago</label>{{ form_divida.valor_pago }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Juros (%)</label>{{ form_divida.juros }}</div>
+                        <div class="mb-3 form-check">{{ form_divida.ativo }}<label class="form-check-label">Ativo</label></div>
+                        <button type="submit" class="btn btn-journal btn-journal-danger w-100">Salvar Dívida</button>
+                    </form>
+                </div>
             </div>
 
-            <h6 class="mb-2 text-muted fw-bold">Cadastrar Dívida</h6>
-            <div class="card card-form p-3">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="salvar_divida" value="1">
-                    <div class="mb-2">
-                        <label class="form-label label-mini">Descrição</label>
-                        {{ form_divida.descricao }}
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label label-mini">Valor Total (R$)</label>
-                        {{ form_divida.valor_total }}
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label label-mini">Já Pago (R$)</label>
-                        {{ form_divida.valor_pago }}
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label label-mini">Juros (%)</label>
-                        {{ form_divida.juros }}
-                    </div>
-                    <div class="mb-3 form-check">
-                        {{ form_divida.ativo }}
-                        <label class="form-check-label">Ativo</label>
-                    </div>
-                    <button type="submit" class="btn btn-pink w-100 fw-bold">Salvar Dívida</button>
-                </form>
+            <!-- LISTA DE DÍVIDAS -->
+            <div class="col-md-8">
+                <div class="card card-journal p-3">
+                    <h5 style="font-family: 'Architects Daughter';">Minhas Dívidas</h5>
+                    {% if dividas %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-journal align-middle mb-0">
+                                <thead>
+                                    <tr><th>Dívida</th><th class="text-end">Total</th><th class="text-end">Falta</th><th class="text-center">Juros</th><th class="text-end">Ações</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in dividas %}
+                                        <tr>
+                                            <td class="fw-bold">{{ d.descricao }}</td>
+                                            <td class="text-end text-muted">R$ {{ d.valor_total|moeda }}</td>
+                                            <td class="text-end text-vermelho fw-bold">R$ {{ d.falta_pagar|moeda }}</td>
+                                            <td class="text-center">
+                                                {% if d.juros %}<span class="badge" style="background:#f7b2bd; border:1px solid #222; color:#222;">{{ d.juros }}%</span>
+                                                {% else %}-{% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <form method="post" action="{% url 'divida_excluir' d.id %}" class="d-inline" onsubmit="return confirm('Excluir?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-journal btn-journal-danger py-0 px-2" style="font-size:0.8rem;">🗑️</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-emoji-smile" style="font-size: 2rem; color: #16a34a;"></i>
+                            <h5 class="mt-2" style="font-family: 'Architects Daughter';">Você não tem dívidas!</h5>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-
-        <!-- LISTA DE DÍVIDAS -->
-        <div class="col-md-8">
-            <h6 class="mb-2 text-muted fw-bold">Minhas Dívidas</h6>
-            {% if dividas %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Dívida</th>
-                                <th class="text-end">Total</th>
-                                <th class="text-end">Pago</th>
-                                <th class="text-end">Falta</th>
-                                <th class="text-center">Juros</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for d in dividas %}
-                                <tr>
-                                    <td class="fw-bold text-dark">{{ d.descricao }}</td>
-                                    <td class="text-end text-muted">R$ {{ d.valor_total|moeda }}</td>
-                                    <td class="text-end text-neon">R$ {{ d.valor_pago|moeda }}</td>
-                                    <td class="text-end text-pink fw-bold">R$ {{ d.falta_pagar|moeda }}</td>
-                                    <td class="text-center">
-                                        {% if d.juros %}
-                                            <span class="badge bg-pink">{{ d.juros }}%</span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end">
-                                        <form method="post" action="{% url 'divida_excluir' d.id %}" class="d-inline"
-                                              onsubmit="return confirm('Excluir a dívida {{ d.descricao }}?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="alert alert-light border text-muted text-center py-4">
-                    <i class="bi bi-emoji-smile fs-2 text-neon"></i><br>
-                    Você não tem dívidas cadastradas. Parabéns!
-                </div>
-            {% endif %}
         </div>
     </div>
 {% endblock %}

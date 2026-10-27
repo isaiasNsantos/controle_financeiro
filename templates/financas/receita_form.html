@@ -3,33 +3,32 @@
 {% block title %}Editar Receita - Controle Financeiro{% endblock %}
 
 {% block content %}
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h5 class="mb-3 text-purple fw-bold">Editar Receita: {{ receita.descricao }}</h5>
-            <div class="card card-form p-4">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Descrição</label>
-                        {{ form.descricao }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Valor (R$)</label>
-                        {{ form.valor }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Data</label>
-                        {{ form.data }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Pessoa</label>
-                        {{ form.pessoa }}
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-neon flex-grow-1">Salvar Alterações</button>
-                        <a href="{% url 'receita_lista' %}" class="btn btn-light border">Cancelar</a>
-                    </div>
-                </form>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+        .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
+        .btn-journal:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #222; background: #81c7b3; color: #222; }
+    </style>
+
+    <div class="journal-bg">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="main-title text-center mb-3">EDITAR RECEITA</div>
+                <div class="card card-journal p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3"><label class="form-label fw-bold">Descrição</label>{{ form.descricao }}</div>
+                        <div class="mb-3"><label class="form-label fw-bold">Valor (R$)</label>{{ form.valor }}</div>
+                        <div class="mb-3"><label class="form-label fw-bold">Data</label>{{ form.data }}</div>
+                        <div class="mb-4"><label class="form-label fw-bold">Pessoa</label>{{ form.pessoa }}</div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-journal flex-grow-1">Salvar Alterações</button>
+                            <a href="{% url 'receita_lista' %}" class="btn btn-journal" style="background: #eee;">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

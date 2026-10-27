@@ -4,266 +4,357 @@
 {% block title %}Dashboard - Controle Financeiro{% endblock %}
 
 {% block content %}
-<style>
-    /* --- ESTILOS GERAIS DO DASHBOARD --- */
-    body, .card, .list-group-item {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Deixa os títulos e números mais elegantes */
-    h1, h2, h3, h4, h5, h6, .valor-destaque {
-        letter-spacing: -0.5px;
-    }
-    
-    .valor-destaque {
-        font-variant-numeric: tabular-nums; /* Alinha os números perfeitamente */
-    }
-
-    /* Cabeçalho do Mês */
-    .dash-header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        border-radius: 1.25rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.3);
-    }
-
-    /* Cards de Resumo (Visual Clean) */
-    .resumo-card {
-        border: none;
-        border-radius: 1rem;
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease;
-    }
-    .resumo-card:hover {
-        transform: translateY(-3px);
-    }
-
-    /* Ícones de linha sem fundo */
-    .icon-outline {
-        font-size: 2rem;
-        color: #9ca3af; /* Cinza claro */
-        margin-right: 1rem;
-    }
-
-    /* Cartão de Crédito */
-    .card-credito {
-        background: linear-gradient(135deg, #111827 0%, #374151 100%);
-        border-radius: 1rem;
-        position: relative;
-        overflow: hidden;
-        border: none;
-    }
-    .card-credito::before {
-        content: '';
-        position: absolute;
-        top: -50px; right: -50px;
-        width: 150px; height: 150px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-    }
-    .card-credito::after {
-        content: '';
-        position: absolute;
-        bottom: -50px; left: -50px;
-        width: 100px; height: 100px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-    }
-    
-    .list-group-item {
-        border-left: none; border-right: none;
-        padding: 0.75rem 1rem;
-    }
-    .list-group-item:last-child { border-bottom: none; }
-</style>
-
-{% if sem_mes_ativo %}
-    <div class="alert alert-warning shadow-sm border-0 rounded-4 d-flex align-items-center mt-4">
-        <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-        <div>
-            <strong>Nenhum mês ativo.</strong> <br>
-            <a href="/financas/meses/" class="alert-link">Clique aqui para selecionar um mês</a>.
+    {% if sem_mes_ativo %}
+        <div class="alert alert-warning py-2">
+            ⚠️ Nenhum mês ativo. <a href="/financas/meses/">Selecione um mês</a>.
         </div>
-    </div>
-{% else %}
-    
-    <!-- 1. CABEÇALHO DO MÊS -->
-    <div class="dash-header d-flex justify-content-between align-items-center mt-3">
-        <div>
-            <small class="text-white-50 text-uppercase fw-semibold" style="letter-spacing: 1px; font-size: 0.75rem;">Visão Geral</small>
-            <h3 class="mb-0 fw-semibold">{{ mes_ativo }}</h3>
-        </div>
-        <div>
-            {% if alerta == 'estourado' %}
-                <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm fw-medium"><i class="bi bi-emoji-frown me-1"></i> Estourado</span>
-            {% elif alerta == 'apertado' %}
-                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm fw-medium"><i class="bi bi-emoji-neutral me-1"></i> Apertado</span>
-            {% elif alerta == 'ok' %}
-                <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm fw-medium"><i class="bi bi-emoji-smile me-1"></i> Saudável</span>
-            {% else %}
-                <span class="badge bg-secondary rounded-pill px-3 py-2 shadow-sm fw-medium">Sem Receita</span>
-            {% endif %}
-        </div>
-    </div>
+    {% else %}
+        <!-- ESTILO CADERNO BULLET JOURNAL -->
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
 
-    <!-- 2. CARDS DE RESUMO (Visual limpo) -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body d-flex align-items-center py-3">
-                    <i class="bi bi-graph-up-arrow icon-outline"></i>
-                    <div>
-                        <small class="text-muted fw-medium text-uppercase" style="font-size: 0.75rem;">Receitas</small>
-                        <h4 class="mb-0 fw-semibold text-success">R$ {{ total_receitas|moeda }}</h4>
-                    </div>
+            :root {
+                --bg-color: #fcf9f5;
+                --line-color: #e5dcd0;
+                --mint-green: #b4e3d3;
+                --mint-green-dark: #81c7b3;
+                --pink: #f7b2bd;
+                --purple: #d1b3e2;
+                --text-dark: #333333;
+                --border-dark: #222222;
+                --blue-pastel: #a8c8f0;
+                --red-pastel: #f0a8b0;
+                --green-pastel: #a8f0c4;
+            }
+
+            .journal-bg {
+                background-color: var(--bg-color);
+                background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+                background-size: 100% 28px;
+                font-family: 'Patrick Hand', cursive, sans-serif;
+                color: var(--text-dark);
+                padding: 30px;
+                border-radius: 8px;
+                margin-top: -10px;
+            }
+
+            .main-title {
+                text-align: center;
+                font-family: 'Architects Daughter', cursive;
+                font-size: 2.2rem;
+                font-weight: bold;
+                letter-spacing: 2px;
+                margin-bottom: 20px;
+                color: var(--border-dark);
+                text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            }
+
+            .header-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .month-box {
+                border: 2px solid var(--border-dark);
+                background-color: var(--mint-green);
+                padding: 8px 20px;
+                border-radius: 4px;
+                box-shadow: 4px 4px 0px var(--border-dark);
+                transform: rotate(-2deg);
+                text-align: center;
+            }
+
+            .month-box .month-name {
+                font-size: 1.5rem;
+                font-weight: bold;
+                font-family: 'Architects Daughter', cursive;
+            }
+
+            /* CARDS ESTILO CADERNO */
+            .card-journal {
+                border: 2px solid var(--border-dark) !important;
+                background-color: rgba(255, 255, 255, 0.9) !important;
+                box-shadow: 4px 4px 0px var(--border-dark) !important;
+                border-radius: 4px !important;
+                transition: transform 0.1s;
+            }
+            .card-journal:hover {
+                transform: translate(-1px, -1px);
+                box-shadow: 5px 5px 0px var(--border-dark) !important;
+            }
+
+            /* CABEÇALHOS DAS LISTAS */
+            .card-header-journal {
+                border-bottom: 2px solid var(--border-dark);
+                font-family: 'Architects Daughter', cursive;
+                font-weight: bold;
+                font-size: 1.1rem;
+                padding: 8px 15px;
+            }
+
+            /* TEXTOS E VALORES */
+            .valor-journal {
+                font-family: 'Patrick Hand', cursive;
+                font-size: 1.8rem;
+                font-weight: bold;
+                line-height: 1;
+            }
+
+            .badge-journal {
+                border: 2px solid var(--border-dark);
+                border-radius: 4px;
+                box-shadow: 2px 2px 0px var(--border-dark);
+                font-family: 'Patrick Hand', cursive;
+                font-size: 1rem;
+                padding: 4px 10px;
+            }
+
+            /* BARRA DE PROGRESSO */
+            .progress-journal {
+                border: 2px solid var(--border-dark);
+                border-radius: 4px;
+                height: 14px !important;
+                background-color: #fff;
+                box-shadow: 2px 2px 0px rgba(0,0,0,0.1) inset;
+                overflow: hidden;
+            }
+            .progress-bar-journal {
+                height: 100%;
+            }
+
+            .list-group-item {
+                background-color: transparent !important;
+                border-bottom: 1px dashed #a39f98 !important;
+            }
+        </style>
+
+        <div class="journal-bg">
+            <div class="main-title">MEU FINANCEIRO</div>
+
+            <div class="header-section">
+                <!-- Mês Atual -->
+                <div class="month-box">
+                    <div class="month-name">{{ mes_ativo }}</div>
                 </div>
+
+                <!-- Status / Alerta -->
+                {% if alerta == 'estourado' %}
+                    <span class="badge-journal" style="background-color: var(--red-pastel);">🔴 ESTOURADO</span>
+                {% elif alerta == 'apertado' %}
+                    <span class="badge-journal" style="background-color: #fce8a1;">🟡 APERTADO</span>
+                {% elif alerta == 'ok' %}
+                    <span class="badge-journal" style="background-color: var(--green-pastel);">🟢 OK</span>
+                {% else %}
+                    <span class="badge-journal" style="background-color: #e5e5e5;">⚪ SEM RECEITA</span>
+                {% endif %}
             </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body d-flex align-items-center py-3">
-                    <i class="bi bi-graph-down-arrow icon-outline"></i>
-                    <div>
-                        <small class="text-muted fw-medium text-uppercase" style="font-size: 0.75rem;">Gastos</small>
-                        <h4 class="mb-0 fw-semibold text-danger">R$ {{ total_gastos|moeda }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body d-flex align-items-center py-3">
-                    <i class="bi bi-wallet icon-outline"></i>
-                    <div>
-                        <small class="text-muted fw-medium text-uppercase" style="font-size: 0.75rem;">Sobra</small>
-                        <h4 class="mb-0 fw-semibold {% if verba < 0 %}text-danger{% else %}text-success{% endif %}">
-                            R$ {{ verba|moeda }}
-                        </h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 3. REGRA 50-30-20 -->
-    <h6 class="mb-3 fw-semibold text-dark"><i class="bi bi-pie-chart text-secondary me-2"></i>Regra 50-30-20</h6>
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium text-muted" style="font-size: 0.85rem;">Essenciais</span>
-                        <span class="fw-semibold {% if pct_essenciais <= 50 %}text-success{% else %}text-danger{% endif %}">{{ pct_essenciais|floatformat:0 }}%</span>
-                    </div>
-                    <h6 class="fw-semibold text-dark mb-2">R$ {{ gastos_essenciais|moeda }}</h6>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar {% if pct_essenciais <= 50 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ pct_essenciais }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium text-muted" style="font-size: 0.85rem;">Não essenciais</span>
-                        <span class="fw-semibold {% if pct_nao_essenciais <= 30 %}text-success{% else %}text-danger{% endif %}">{{ pct_nao_essenciais|floatformat:0 }}%</span>
-                    </div>
-                    <h6 class="fw-semibold text-dark mb-2">R$ {{ gastos_nao_essenciais|moeda }}</h6>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar {% if pct_nao_essenciais <= 30 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ pct_nao_essenciais }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-4">
-            <div class="card resumo-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-medium text-muted" style="font-size: 0.85rem;">Sobra (Investimento)</span>
-                        <span class="fw-semibold {% if pct_sobra >= 20 %}text-success{% else %}text-danger{% endif %}">{{ pct_sobra|floatformat:0 }}%</span>
-                    </div>
-                    <h6 class="fw-semibold text-dark mb-2">R$ {{ verba|moeda }}</h6>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar {% if pct_sobra >= 20 %}bg-success{% else %}bg-danger{% endif %}" style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <!-- 4. GRÁFICO -->
-        <div class="col-12 col-lg-5">
-            <div class="card resumo-card h-100">
-                <div class="card-body p-4">
-                    <h6 class="fw-semibold text-dark mb-4">Gastos por Categoria</h6>
-                    {% if grafico_valores %}
-                        <div style="position: relative; height: 250px; width: 100%;">
-                            <canvas id="graficoGastos"></canvas>
-                        </div>
-                    {% else %}
-                        <div class="text-center text-muted py-5">
-                            <i class="bi bi-inbox fs-1 d-block mb-2 text-black-50"></i>
-                            <span style="font-size: 0.9rem;">Nenhum gasto lançado.</span>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. ÚLTIMOS LANÇAMENTOS -->
-        <div class="col-12 col-lg-7">
-            <div class="card resumo-card h-100">
-                <div class="card-header bg-white border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-semibold text-dark mb-0">Últimos Lançamentos</h6>
-                </div>
-                <div class="card-body p-0 mt-2">
-                    <div class="row g-0">
-                        <!-- Receitas -->
-                        <div class="col-md-6 border-end">
-                            <div class="d-flex justify-content-between align-items-center px-4 py-2 bg-light bg-opacity-50">
-                                <span class="fw-semibold text-success" style="font-size:0.85rem;"><i class="bi bi-arrow-up-circle me-1"></i> Receitas</span>
-                                <a href="{% url 'receita_lista' %}" class="text-decoration-none" style="font-size:0.8rem;">Ver todas</a>
+            <!-- 1. Resumo (3 colunas) -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="font-size: 1.1rem; font-weight: bold;">Receitas</span>
+                                <div style="background-color: var(--blue-pastel); padding: 5px; border: 2px solid var(--border-dark); border-radius: 4px;">
+                                    <i class="bi bi-arrow-down-circle" style="font-size: 1.2rem;"></i>
+                                </div>
                             </div>
+                            <div class="valor-journal mt-2" style="color: #2563eb;">R$ {{ total_receitas|moeda }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="font-size: 1.1rem; font-weight: bold;">Gastos</span>
+                                <div style="background-color: var(--red-pastel); padding: 5px; border: 2px solid var(--border-dark); border-radius: 4px;">
+                                    <i class="bi bi-arrow-up-circle" style="font-size: 1.2rem;"></i>
+                                </div>
+                            </div>
+                            <div class="valor-journal mt-2" style="color: #dc2626;">R$ {{ total_gastos|moeda }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="font-size: 1.1rem; font-weight: bold;">Sobra</span>
+                                <div style="background-color: var(--green-pastel); padding: 5px; border: 2px solid var(--border-dark); border-radius: 4px;">
+                                    <i class="bi bi-wallet2" style="font-size: 1.2rem;"></i>
+                                </div>
+                            </div>
+                            <div class="valor-journal mt-2" style="color: #16a34a;">R$ {{ verba|moeda }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <!-- 2. GRÁFICO -->
+                <div class="col-lg-5">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <h6 style="font-family: 'Architects Daughter'; font-weight: bold; font-size: 1.1rem;">Onde gastei?</h6>
+                            {% if grafico_valores %}
+                                <div style="position: relative; height: 220px; width: 100%;">
+                                    <canvas id="graficoGastos"></canvas>
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted py-5" style="font-family: 'Patrick Hand'; font-size: 1.2rem;">Nenhum gasto lançado.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3. 50-30-20 -->
+                <div class="col-lg-7">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <h6 style="font-family: 'Architects Daughter'; font-weight: bold; font-size: 1.1rem; margin-bottom: 20px;">Método 50-30-20</h6>
+                            
+                            <!-- Essenciais -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 0.95rem;">
+                                    <span style="font-weight: bold;"><i class="bi bi-house-door"></i> Essenciais</span>
+                                    <span style="font-weight: bold; color: #8b5cf6;">R$ {{ gastos_essenciais|moeda }}</span>
+                                </div>
+                                <div class="progress progress-journal">
+                                    <div class="progress-bar progress-bar-journal" style="width: {{ pct_essenciais }}%; background-color: var(--purple);"></div>
+                                </div>
+                                <div class="text-end mt-1" style="font-size: 0.85rem;">{{ pct_essenciais|floatformat:1 }}% (ideal ≤ 50%)</div>
+                            </div>
+
+                            <!-- Não Essenciais -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 0.95rem;">
+                                    <span style="font-weight: bold;"><i class="bi bi-controller"></i> Não Essenciais</span>
+                                    <span style="font-weight: bold; color: #dc2626;">R$ {{ gastos_nao_essenciais|moeda }}</span>
+                                </div>
+                                <div class="progress progress-journal">
+                                    <div class="progress-bar progress-bar-journal" style="width: {{ pct_nao_essenciais }}%; background-color: var(--red-pastel);"></div>
+                                </div>
+                                <div class="text-end mt-1" style="font-size: 0.85rem;">{{ pct_nao_essenciais|floatformat:1 }}% (ideal ≤ 30%)</div>
+                            </div>
+
+                            <!-- Sobra -->
+                            <div>
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 0.95rem;">
+                                    <span style="font-weight: bold;"><i class="bi bi-piggy-bank"></i> Sobra / Investimento</span>
+                                    <span style="font-weight: bold; color: #16a34a;">R$ {{ verba|moeda }}</span>
+                                </div>
+                                <div class="progress progress-journal">
+                                    <div class="progress-bar progress-bar-journal" style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%; background-color: var(--green-pastel);"></div>
+                                </div>
+                                <div class="text-end mt-1" style="font-size: 0.85rem;">{{ pct_sobra|floatformat:1 }}% (ideal ≥ 20%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Orçamentos e Cartões -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-7">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <h6 style="font-family: 'Architects Daughter'; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">Orçamentos por Categoria</h6>
+                            <div class="row g-2">
+                                {% for o in orcamentos %}
+                                    <div class="col-sm-6">
+                                        <div class="p-2" style="background-color: rgba(255,255,255,0.7); border: 2px dashed var(--border-dark); border-radius: 4px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span style="font-weight: bold; font-size: 0.9rem;">{{ o.categoria.nome }}</span>
+                                                <span style="font-weight: bold; font-size: 0.85rem; color: {% if o.cor == 'danger' %}#dc2626{% elif o.cor == 'success' %}#16a34a{% else %}#d97706{% endif %};">{{ o.pct_usado|floatformat:0 }}%</span>
+                                            </div>
+                                            <div class="progress progress-journal" style="height: 10px !important;">
+                                                <div class="progress-bar" style="width: {% if o.pct_usado > 100 %}100{% else %}{{ o.pct_usado }}{% endif %}%; background-color: {% if o.cor == 'danger' %}var(--red-pastel){% elif o.cor == 'success' %}var(--green-pastel){% else %}#fce8a1{% endif %};"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-1" style="font-size: 0.8rem;">
+                                                <span>R$ {{ o.gasto|moeda }}</span>
+                                                <span>de R$ {{ o.limite|moeda }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-muted" style="font-size: 1.1rem;">Nenhum limite definido.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card card-journal h-100">
+                        <div class="card-body p-3">
+                            <h6 style="font-family: 'Architects Daughter'; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">Faturas de Cartão</h6>
+                            {% for c in resumo_cartoes %}
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2" style="border-bottom-style: dashed !important; border-color: #a39f98 !important;">
+                                    <div>
+                                        <div style="font-weight: bold; font-size: 1rem;">{{ c.cartao.nome }}</div>
+                                        <div style="font-size: 0.8rem; color: #777;">Limite: R$ {{ c.cartao.limite|moeda }}</div>
+                                    </div>
+                                    <div style="font-weight: bold; font-size: 1.1rem; color: #8b5cf6;">R$ {{ c.total_mes|moeda }}</div>
+                                </div>
+                            {% empty %}
+                                <div class="text-muted" style="font-size: 1.1rem;">Nenhum cartão cadastrado.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Últimos Lançamentos -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card card-journal overflow-hidden">
+                        <div class="card-header-journal" style="background-color: var(--blue-pastel);">
+                            <i class="bi bi-arrow-down-circle"></i> Últimas Receitas
+                        </div>
+                        <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 {% for r in ultimas_receitas %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
-                                        <div class="text-truncate" style="max-width:70%;">
-                                            <div class="fw-medium text-dark">{{ r.descricao }}</div>
-                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ r.data|date:"d/m" }} • {{ r.pessoa.nome }}</small>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                                        <div>
+                                            <div style="font-weight: bold; font-size: 1rem;">{{ r.descricao }}</div>
+                                            <div style="font-size: 0.8rem; color: #777;">{{ r.data|date:"d/m" }} • {{ r.pessoa.nome }}</div>
                                         </div>
-                                        <span class="text-success fw-semibold" style="font-size:0.9rem;">+ R$ {{ r.valor|moeda }}</span>
+                                        <span style="color: #2563eb; font-weight: bold; font-size: 1.1rem;">+ R$ {{ r.valor|moeda }}</span>
                                     </li>
                                 {% empty %}
-                                    <li class="list-group-item text-muted text-center py-4">Nenhuma receita.</li>
+                                    <li class="list-group-item text-center py-3">Vazio</li>
                                 {% endfor %}
                             </ul>
                         </div>
-                        
-                        <!-- Gastos -->
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center px-4 py-2 bg-light bg-opacity-50">
-                                <span class="fw-semibold text-danger" style="font-size:0.85rem;"><i class="bi bi-arrow-down-circle me-1"></i> Gastos</span>
-                                <a href="{% url 'gasto_lista' %}" class="text-decoration-none" style="font-size:0.8rem;">Ver todos</a>
-                            </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card card-journal overflow-hidden">
+                        <div class="card-header-journal" style="background-color: var(--red-pastel);">
+                            <i class="bi bi-arrow-up-circle"></i> Últimos Gastos
+                        </div>
+                        <div class="card-body p-0">
                             <ul class="list-group list-group-flush">
                                 {% for g in ultimos_gastos %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
-                                        <div class="text-truncate" style="max-width:70%;">
-                                            <div class="fw-medium text-dark">
-                                                {% if g.cartao %}<i class="bi bi-credit-card text-primary me-1"></i>{% endif %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                                        <div>
+                                            <div style="font-weight: bold; font-size: 1rem;">
+                                                {% if g.cartao %}<i class="bi bi-credit-card"></i> {% endif %}
                                                 {{ g.descricao }}
                                             </div>
-                                            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ g.data|date:"d/m" }} • {{ g.categoria.nome }}</small>
+                                            <div style="font-size: 0.8rem; color: #777;">{{ g.data|date:"d/m" }} • {{ g.categoria.nome }}</div>
                                         </div>
-                                        <span class="text-danger fw-semibold" style="font-size:0.9rem;">- R$ {{ g.valor|moeda }}</span>
+                                        <span style="color: #dc2626; font-weight: bold; font-size: 1.1rem;">- R$ {{ g.valor|moeda }}</span>
                                     </li>
                                 {% empty %}
-                                    <li class="list-group-item text-muted text-center py-4">Nenhum gasto.</li>
+                                    <li class="list-group-item text-center py-3">Vazio</li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -271,47 +362,10 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- 6. CARTÕES -->
-    <h6 class="mb-3 fw-semibold text-dark"><i class="bi bi-credit-card-2-front text-secondary me-2"></i>Meus Cartões</h6>
-    <div class="row g-3 mb-5">
-        {% for c in resumo_cartoes %}
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card card-credito text-white h-100">
-                    <div class="card-body p-4 position-relative" style="z-index: 1;">
-                        <div class="d-flex justify-content-between align-items-start mb-4">
-                            <span class="fw-semibold fs-5">{{ c.cartao.nome }}</span>
-                            <i class="bi bi-wifi fs-4 text-white-50" style="transform: rotate(90deg);"></i>
-                        </div>
-                        <small class="text-white-50 text-uppercase fw-medium" style="font-size: 0.7rem; letter-spacing: 1px;">Fatura Atual</small>
-                        <h3 class="mb-3 fw-semibold">R$ {{ c.total_mes|moeda }}</h3>
-                        {% if c.cartao.limite %}
-                            <div class="d-flex justify-content-between text-white-50" style="font-size: 0.8rem;">
-                                <span>Limite Disponível</span>
-                                <span>R$ {{ c.cartao.limite|moeda }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% empty %}
-            <div class="col-12">
-                <div class="card resumo-card">
-                    <div class="card-body text-center text-muted py-4">
-                        <i class="bi bi-credit-card fs-1 text-black-50 d-block mb-2"></i>
-                        Nenhum cartão cadastrado. <a href="/financas/cartoes/" class="text-decoration-none">Cadastre aqui</a>.
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-
-{% endif %}
+    {% endif %}
 {% endblock %}
 
 {% block extra_js %}
-<!-- CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -319,7 +373,8 @@
         if (canvas && {{ grafico_valores|length }} > 0) {
             const ctx = canvas.getContext('2d');
             
-            const cores = ['#6366f1', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e'];
+            // Paleta pastel para combinar com o caderno
+            const cores = ['#f7b2bd', '#d1b3e2', '#a8c8f0', '#b4e3d3', '#fce8a1', '#a8f0c4', '#f0a8b0'];
             
             new Chart(ctx, {
                 type: 'doughnut',
@@ -329,23 +384,17 @@
                         data: {{ grafico_valores|safe }},
                         backgroundColor: cores,
                         borderWidth: 2,
-                        borderColor: '#ffffff',
-                        hoverOffset: 6
+                        borderColor: '#222222', // Borda preta pra parecer desenho
+                        hoverOffset: 5
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%',
+                    cutout: '60%',
                     plugins: {
                         legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                boxWidth: 8,
-                                padding: 20,
-                                font: { size: 11, family: "'Inter', sans-serif" }
-                            }
+                            display: false 
                         }
                     }
                 }

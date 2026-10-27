@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planejamento Financeiro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+
+        :root {
+            --bg-color: #fcf9f5;
+            --line-color: #e5dcd0;
+            --mint-green: #b4e3d3;
+            --mint-green-dark: #81c7b3;
+            --pink: #f7b2bd;
+            --purple: #d1b3e2;
+            --text-dark: #333333;
+            --border-dark: #222222;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            /* Efeito de caderno com linhas horizontais */
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% 28px;
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .journal-container {
+            width: 100%;
+            max-width: 650px;
+            background: transparent;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Título Principal */
+        .main-title {
+            text-align: center;
+            font-family: 'Architects Daughter', cursive;
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: var(--border-dark);
+        }
+
+        /* Cabeçalho com mês e meta */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        /* Bloco do Mês (Janeiro) */
+        .month-box {
+            border: 2px solid var(--border-dark);
+            background-color: var(--mint-green);
+            padding: 8px 20px;
+            border-radius: 4px;
+            box-shadow: 3px 3px 0px var(--border-dark);
+            transform: rotate(-2deg);
+            text-align: center;
+        }
+
+        .month-box .year {
+            font-size: 0.8rem;
+            margin-bottom: -4px;
+        }
+
+        .month-box .month-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        /* Bloco Meta Economizar */
+        .meta-box {
+            border: 2px solid var(--border-dark);
+            background-color: var(--purple);
+            padding: 6px 15px;
+            border-radius: 4px;
+            box-shadow: 3px 3px 0px var(--border-dark);
+            transform: rotate(1deg);
+            font-size: 1.1rem;
+        }
+
+        /* Tabela Estilo Bullet Journal */
+        .table-container {
+            border: 2px solid var(--border-dark);
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 4px 4px 0px var(--border-dark);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            border-bottom: 2px solid var(--border-dark);
+            border-right: 1px solid var(--border-dark);
+            padding: 8px 6px;
+            font-size: 1rem;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        th:nth-child(1) { background-color: var(--mint-green); width: 12%; }
+        th:nth-child(2) { background-color: var(--mint-green); width: 40%; }
+        th:nth-child(3) { background-color: var(--mint-green-dark); width: 16%; }
+        th:nth-child(4) { background-color: var(--pink); width: 16%; }
+        th:nth-child(5) { background-color: var(--purple); width: 16%; border-right: none; }
+
+        td {
+            border-bottom: 1px dashed #ccc;
+            border-right: 1px solid var(--border-dark);
+            padding: 6px;
+            height: 24px;
+        }
+
+        td:nth-child(1) { background-color: rgba(180, 227, 211, 0.3); }
+        td:nth-child(2) { background-color: rgba(180, 227, 211, 0.3); }
+        td:nth-child(3) { background-color: rgba(180, 227, 211, 0.15); }
+        td:nth-child(4) { background-color: rgba(247, 178, 189, 0.3); }
+        td:nth-child(5) { background-color: rgba(209, 179, 226, 0.3); border-right: none; }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Bloco Inferior: "Quero ou Preciso?" */
+        .footer-boxes {
+            display: flex;
+            justify-content: flex-end;
+            gap: 20px;
+        }
+
+        .quiero-preciso-box {
+            border: 2px solid var(--border-dark);
+            background-color: var(--pink);
+            padding: 15px;
+            width: 220px;
+            box-shadow: 3px 3px 0px var(--border-dark);
+            transform: rotate(2deg);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .quiero-preciso-box .lines {
+            margin-top: 10px;
+            border-top: 1px dashed var(--border-dark);
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="journal-container">
+        <!-- Título -->
+        <div class="main-title">PLANEJAMENTO FINANCEIRO</div>
+
+        <!-- Cabeçalho -->
+        <div class="header-section">
+            <div class="month-box">
+                <div class="year">2026</div>
+                <div class="month-name">Janeiro</div>
+            </div>
+            <div class="meta-box">
+                🎯 meta: economizar
+            </div>
+        </div>
+
+        <!-- Tabela Estilizada -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>dia</th>
+                        <th>descrição</th>
+                        <th>entrada</th>
+                        <th>saída</th>
+                        <th>observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Linhas vazias simulando o caderno para preenchimento -->
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Caixa inferior -->
+        <div class="footer-boxes">
+            <div class="quiero-preciso-box">
+                Quero ou Preciso?
+                <div class="lines"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

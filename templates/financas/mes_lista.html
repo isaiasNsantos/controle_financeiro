@@ -3,128 +3,123 @@
 {% block title %}Meses - Controle Financeiro{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-5">
-            <h5 class="mb-3 text-purple fw-bold">Abrir Novo Mês</h5>
-            <div class="card card-form p-3 mb-4">
-                <form method="post" action="{% url 'mes_criar' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Ano</label>
-                        {{ form.ano }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label label-mini">Mês</label>
-                        {{ form.mes }}
-                    </div>
-                    {% if form.errors %}
-                        <div class="alert alert-danger py-2 small">
-                            Esse mês já foi aberto ou fechado!
-                        </div>
-                    {% endif %}
-                    <button type="submit" class="btn btn-purple w-100">Abrir Mês</button>
-                </form>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+        .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
+        .btn-journal:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #222; background: #81c7b3; color: #222; }
+        .btn-journal-warning { background: #fce8a1; }
+        .btn-journal-warning:hover { background: #f5d76e; }
+        .btn-journal-primary { background: #a8c8f0; }
+        .btn-journal-primary:hover { background: #89b4e6; }
+        .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
+        .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+    </style>
+
+    <div class="journal-bg">
+        <div class="main-title mb-4">CONTROLE DE MESES</div>
+        <div class="row">
+            <!-- ABRIR NOVO MÊS -->
+            <div class="col-md-4">
+                <div class="card card-journal p-3 mb-4">
+                    <h5 style="font-family: 'Architects Daughter';">Abrir Novo Mês</h5>
+                    <form method="post" action="{% url 'mes_criar' %}">
+                        {% csrf_token %}
+                        <div class="mb-2"><label class="form-label fw-bold">Ano</label>{{ form.ano }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Mês</label>{{ form.mes }}</div>
+                        {% if form.errors %}
+                            <div class="alert alert-danger py-1 px-2 mb-2" style="font-size: 0.9rem; border: 1px solid #222;">Esse mês já existe!</div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-journal w-100 mt-2">Abrir Mês</button>
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <div class="col-md-7">
-            <h5 class="mb-3 text-purple fw-bold">Meses em Andamento</h5>
-            {% if meses %}
-                <div class="table-responsive mb-4">
-                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mês</th>
-                                <th>Status</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for mes in meses %}
-                                <tr>
-                                    <td class="fw-bold text-dark">
-                                        {{ mes }}
-                                        {% if mes.id == mes_ativo_id %}
-                                            <span class="badge bg-neon ms-2">Ativo</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if mes.id == mes_ativo_id %}
-                                            <span class="text-neon fw-bold">Selecionado</span>
-                                        {% else %}
-                                            <span class="text-muted">—</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end text-nowrap">
-                                        {% if mes.id == mes_ativo_id %}
-                                            <form method="post" action="{% url 'mes_fechar' mes.id %}" class="d-inline"
-                                                  onsubmit="return confirm('Fechar {{ mes }} e abrir o próximo mês?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-warning fw-bold text-dark">
-                                                    <i class="bi bi-lock-fill"></i> Fechar e Avançar
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            {% if mes.receitas.count == 0 and mes.gastos.count == 0 %}
-                                                <form method="post" action="{% url 'mes_clonar' mes.id %}" class="d-inline"
-                                                      onsubmit="return confirm('Copiar todas as receitas e gastos fixos do mês anterior para {{ mes }}?');">
+            <!-- MESES EM ANDAMENTO -->
+            <div class="col-md-8">
+                <div class="card card-journal p-3 mb-4">
+                    <h5 style="font-family: 'Architects Daughter';">Meses em Andamento</h5>
+                    {% if meses %}
+                        <div class="table-responsive">
+                            <table class="table table-hover table-journal align-middle mb-0">
+                                <thead>
+                                    <tr><th>Mês</th><th>Status</th><th class="text-end">Ações</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for mes in meses %}
+                                        <tr>
+                                            <td class="fw-bold">
+                                                {{ mes }}
+                                                {% if mes.id == mes_ativo_id %}
+                                                    <span class="badge ms-1" style="background:#b4e3d3; color:#222; border:1px solid #222;">Ativo</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if mes.id == mes_ativo_id %}<span class="text-success fw-bold">Selecionado</span>
+                                                {% else %}<span class="text-muted">—</span>{% endif %}
+                                            </td>
+                                            <td class="text-end text-nowrap">
+                                                {% if mes.id == mes_ativo_id %}
+                                                    <form method="post" action="{% url 'mes_fechar' mes.id %}" class="d-inline" onsubmit="return confirm('Fechar {{ mes }} e avançar?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-journal btn-journal-warning py-0 px-2" style="font-size:0.85rem;">🔒 Fechar</button>
+                                                    </form>
+                                                {% else %}
+                                                    {% if mes.receitas.count == 0 and mes.gastos.count == 0 %}
+                                                        <form method="post" action="{% url 'mes_clonar' mes.id %}" class="d-inline" onsubmit="return confirm('Clonar do mês anterior?');">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-journal btn-journal-primary py-0 px-2" style="font-size:0.85rem;">📑 Clonar</button>
+                                                        </form>
+                                                    {% endif %}
+                                                    <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.85rem;">👉 Selecionar</button>
+                                                    </form>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted mt-3">Nenhum mês aberto.</div>
+                    {% endif %}
+                </div>
+
+                <!-- HISTÓRICO -->
+                {% if meses_fechados %}
+                    <div class="card card-journal p-3">
+                        <h5 style="font-family: 'Architects Daughter'; color: #777;">Histórico (Fechados)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-journal align-middle mb-0" style="opacity: 0.8;">
+                                <thead class="table-light">
+                                    <tr><th>Mês Fechado</th><th class="text-end">Ações</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for mes in meses_fechados %}
+                                        <tr>
+                                            <td class="fw-bold text-muted">{{ mes }}</td>
+                                            <td class="text-end text-nowrap">
+                                                <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Clonar do mês anterior">
-                                                        <i class="bi bi-files"></i> Clonar
-                                                    </button>
+                                                    <button type="submit" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.75rem;">👁️ Ver</button>
                                                 </form>
-                                            {% endif %}
-                                            
-                                            <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Selecionar</button>
-                                            </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="alert alert-info py-2">Nenhum mês aberto.</div>
-            {% endif %}
-
-            <!-- HISTÓRICO DE MESES FECHADOS -->
-            {% if meses_fechados %}
-                <h5 class="mb-3 text-muted fw-bold mt-4"><i class="bi bi-archive"></i> Histórico (Fechados)</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle bg-light shadow-sm rounded">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th>Mês Fechado</th>
-                                <th class="text-end">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for mes in meses_fechados %}
-                                <tr>
-                                    <td class="fw-bold text-muted">{{ mes }}</td>
-                                    <td class="text-end text-nowrap">
-                                        <form method="post" action="{% url 'mes_selecionar' mes.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary py-0" style="font-size: 0.75rem;">Visualizar</button>
-                                        </form>
-                                        
-                                        <form method="post" action="{% url 'mes_reabrir' mes.id %}" class="d-inline ms-1"
-                                              onsubmit="return confirm('Reabrir o mês {{ mes }}?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-outline-warning py-0" style="font-size: 0.75rem;">
-                                                <i class="bi bi-unlock"></i> Reabrir
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endif %}
+                                                <form method="post" action="{% url 'mes_reabrir' mes.id %}" class="d-inline ms-1" onsubmit="return confirm('Reabrir?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-journal btn-journal-warning py-0 px-2" style="font-size:0.75rem;">🔓 Reabrir</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}

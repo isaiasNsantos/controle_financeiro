@@ -1,67 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-/* Fundo da página */
-body { 
-    background-color: #f8fafc; 
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.9rem; 
+/* Reset básico */
+body {
+    font-family: 'Patrick Hand', cursive, sans-serif;
 }
 
-/* --- CORES CUSTOMIZADAS --- */
-/* Azul (Receitas) */
-.text-azul { color: #2563eb !important; }
-.bg-azul { background-color: #2563eb !important; }
-.btn-azul { background-color: #2563eb !important; color: white !important; border: none; }
-.btn-azul:hover { background-color: #1d4ed8 !important; color: white !important; }
-
-/* Vermelho (Gastos) */
-.text-vermelho { color: #dc2626 !important; }
-.bg-vermelho { background-color: #dc2626 !important; }
-.btn-vermelho { background-color: #dc2626 !important; color: white !important; border: none; }
-.btn-vermelho:hover { background-color: #b91c1c !important; color: white !important; }
-
-/* Verde (Sobra / Positivo) */
-.text-verde { color: #16a34a !important; }
-.bg-verde { background-color: #16a34a !important; }
-.btn-verde { background-color: #16a34a !important; color: white !important; border: none; }
-.btn-verde:hover { background-color: #15803d !important; color: white !important; }
-
-/* Roxo (Geral / Cartões) */
-.text-roxo { color: #8b5cf6 !important; }
-.bg-roxo { background-color: #8b5cf6 !important; }
-.btn-roxo { background-color: #8b5cf6 !important; color: white !important; border: none; }
-.btn-roxo:hover { background-color: #7c3aed !important; color: white !important; }
-
-/* --- COMPONENTES GERAIS --- */
-.navbar-custom { background-color: #f1f5f9 !important; border-bottom: 1px solid #e2e8f0; padding: 0.5rem 0; }
-.navbar-brand { font-family: 'Poppins', sans-serif; font-weight: 700 !important; color: #1e1b4b !important; font-size: 1.1rem; letter-spacing: -0.5px; }
-
-.nav-link-custom { color: #475569 !important; font-weight: 600; font-size: 0.8rem; padding: 0.4rem 0.8rem !important; border-radius: 6px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; text-decoration: none; }
-.nav-link-custom:hover, .nav-link-custom.active { background-color: #ffffff; color: #8b5cf6 !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-.nav-link-custom i { color: #94a3b8; }
-.nav-link-custom:hover i, .nav-link-custom.active i { color: #8b5cf6; }
-
-.btn-logout { color: #ef4444 !important; background: #fee2e2; border: none; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 5px; padding: 0.4rem 0.8rem; border-radius: 6px; transition: 0.2s; }
-.btn-logout:hover { background-color: #fecaca; }
-
-/* Cards Clean */
-.card-resumo, .card-form, .card-lista { 
-    border: 1px solid #e2e8f0 !important; 
-    border-radius: 16px !important; 
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02) !important; 
-    background: #ffffff !important;
+/* Inputs estilo caneta */
+.form-control, .form-select {
+    border: 2px solid #222 !important;
+    border-radius: 4px !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.1) inset;
+    color: #333;
 }
-.valor-destaque { font-family: 'Poppins', sans-serif; font-size: 1.6rem; font-weight: 700; }
-.label-mini { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600; }
 
-/* Barras de Progresso */
-.progress { height: 6px !important; border-radius: 3px; background-color: #f1f5f9; }
-.progress-bar { border-radius: 3px; }
+.form-control:focus, .form-select:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.2), 2px 2px 0px rgba(0,0,0,0.1) inset !important;
+    background-color: #fff !important;
+}
 
-/* Inputs */
-.form-control, .form-select { border-radius: 10px; border: 1px solid #cbd5e1; padding: 0.6rem 0.8rem; font-size: 0.9rem; background-color: #f8fafc; }
-.form-control:focus, .form-select:focus { border-color: #8b5cf6; box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.15); background-color: #fff; }
+/* Esconde as setinhas do input number */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+input[type=number] { -moz-appearance: textfield; }
 
-/* Scrollbar do menu */
-.nav-scroll { overflow-x: auto; flex-wrap: nowrap; white-space: nowrap; scrollbar-width: none; padding-bottom: 2px; }
-.nav-scroll::-webkit-scrollbar { display: none; }
+/* Arredondamento de botões e badges pra combinar */
+.card-resumo, .card-form { border-radius: 4px !important; }
+
+/* Scrollbar bonitinha */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

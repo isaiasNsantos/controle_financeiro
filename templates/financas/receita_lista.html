@@ -9,91 +9,82 @@
             ⚠️ Nenhum mês ativo. Vá em <a href="/financas/meses/">Meses</a>.
         </div>
     {% else %}
-        <!-- CABEÇALHO -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-            <h5 class="mb-0 text-dark fw-bold">Receitas — {{ mes_ativo }}</h5>
-            <div class="d-flex gap-2 align-items-center">
-                <span class="badge bg-azul fs-6">Total: R$ {{ total|moeda }}</span>
-                <button class="btn btn-azul fw-bold shadow-sm text-white" type="button" data-bs-toggle="collapse" data-bs-target="#formNovaReceita">
-                    <i class="bi bi-plus-circle"></i> Nova Receita
-                </button>
-            </div>
-        </div>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+            .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+            .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
+            .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+            .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
+            .btn-journal:hover { transform: translate(2px, 2px); box-shadow: 1px 1px 0px #222; background: #81c7b3; color: #222; }
+            .table-journal th { border-bottom: 2px solid #222 !important; background: #b4e3d3 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
+            .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+            .badge-journal { border: 1px solid #222; border-radius: 2px; font-family: 'Patrick Hand'; font-size: 1rem; background: #b4e3d3; color: #222; padding: 4px 8px; }
+        </style>
 
-        <!-- FORMULÁRIO (Escondido) -->
-        <div class="collapse mb-4" id="formNovaReceita">
-            <div class="card card-form p-4 border-top border-4" style="border-top-color: #2563eb !important;">
-                <h6 class="fw-bold text-azul mb-3"><i class="bi bi-pencil-square"></i> Lançar Nova Receita</h6>
-                <form method="post" action="{% url 'receita_criar' %}">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-5">
-                            <label class="form-label label-mini">Descrição</label>
-                            {{ form.descricao }}
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label label-mini">Valor (R$)</label>
-                            {{ form.valor }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label label-mini">Data</label>
-                            {{ form.data }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label label-mini">Pessoa</label>
-                            {{ form.pessoa }}
-                        </div>
-                        <div class="col-md-8 d-flex align-items-end">
-                            <button type="submit" class="btn btn-azul text-white w-100 fw-bold py-2">Salvar Receita</button>
-                        </div>
-                    </div>
-                </form>
+        <div class="journal-bg">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
+                <div class="main-title">RECEITAS — {{ mes_ativo }}</div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge-journal fs-6">Total: R$ {{ total|moeda }}</span>
+                    <button class="btn btn-journal" type="button" data-bs-toggle="collapse" data-bs-target="#formNovaReceita">
+                        <i class="bi bi-plus-circle"></i> Nova Receita
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <!-- LISTA DE RECEITAS -->
-        <div class="card card-form p-0 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4 text-dark" style="width: 10%;">Data</th>
-                            <th class="text-dark" style="width: 15%;">Pessoa</th>
-                            <th class="text-dark" style="width: 60%;">Descrição</th>
-                            <th class="text-end text-dark" style="width: 10%;">Valor</th>
-                            <th class="text-end pe-4 text-dark" style="width: 5%;">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for receita in receitas %}
+            <!-- FORMULÁRIO -->
+            <div class="collapse mb-4" id="formNovaReceita">
+                <div class="card card-journal p-4">
+                    <h5 style="font-family: 'Architects Daughter';">Lançar Nova Receita</h5>
+                    <form method="post" action="{% url 'receita_criar' %}">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-5"><label class="form-label fw-bold">Descrição</label>{{ form.descricao }}</div>
+                            <div class="col-md-3"><label class="form-label fw-bold">Valor (R$)</label>{{ form.valor }}</div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Data</label>{{ form.data }}</div>
+                            <div class="col-md-4"><label class="form-label fw-bold">Pessoa</label>{{ form.pessoa }}</div>
+                            <div class="col-md-8 d-flex align-items-end">
+                                <button type="submit" class="btn btn-journal w-100 py-2">Salvar Receita</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- LISTA -->
+            <div class="card card-journal p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover table-journal align-middle mb-0 text-nowrap">
+                        <thead>
                             <tr>
-                                <td class="ps-4 text-muted">{{ receita.data|date:"d/m/Y" }}</td>
-                                <td class="fw-bold text-secondary">{{ receita.pessoa.nome }}</td>
-                                <td class="fw-bold text-dark">{{ receita.descricao }}</td>
-                                <td class="text-end text-azul fw-bold">R$ {{ receita.valor|moeda }}</td>
-                                <td class="text-end pe-4">
-                                    <a href="{% url 'receita_editar' receita.id %}" class="btn btn-sm btn-link text-secondary p-1" title="Editar">
-                                        <i class="bi bi-pencil-square fs-5"></i>
-                                    </a>
-                                    <form method="post" action="{% url 'receita_excluir' receita.id %}" class="d-inline"
-                                          onsubmit="return confirm('Excluir a receita {{ receita.descricao }}?');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-link text-danger p-1" title="Excluir">
-                                            <i class="bi bi-trash fs-5"></i>
-                                        </button>
-                                    </form>
-                                </td>
+                                <th class="ps-3" style="width: 10%;">Data</th>
+                                <th style="width: 15%;">Pessoa</th>
+                                <th style="width: 55%;">Descrição</th>
+                                <th class="text-end" style="width: 15%;">Valor</th>
+                                <th class="text-end pe-3" style="width: 5%;">Ações</th>
                             </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-                                    Nenhuma receita lançada neste mês.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for receita in receitas %}
+                                <tr>
+                                    <td class="ps-3">{{ receita.data|date:"d/m/Y" }}</td>
+                                    <td>{{ receita.pessoa.nome }}</td>
+                                    <td class="fw-bold">{{ receita.descricao }}</td>
+                                    <td class="text-end text-verde fw-bold">R$ {{ receita.valor|moeda }}</td>
+                                    <td class="text-end pe-3">
+                                        <a href="{% url 'receita_editar' receita.id %}" class="btn btn-sm btn-link text-dark p-1">✏️</a>
+                                        <form method="post" action="{% url 'receita_excluir' receita.id %}" class="d-inline" onsubmit="return confirm('Excluir?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-link text-danger p-1">🗑️</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="5" class="text-center py-4">Nenhuma receita lançada neste mês.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     {% endif %}
