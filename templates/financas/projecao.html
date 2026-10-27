@@ -9,192 +9,39 @@
             ⚠️ Nenhum mês ativo. <a href="/financas/meses/">Selecione um mês</a>.
         </div>
     {% else %}
-        <!-- ESTILO CADERNO BULLET JOURNAL -->
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
-
-            :root {
-                --bg-color: #fcf9f5;
-                --line-color: #e5dcd0;
-                --mint-green: #b4e3d3;
-                --mint-green-dark: #81c7b3;
-                --pink: #f7b2bd;
-                --purple: #d1b3e2;
-                --text-dark: #333333;
-                --border-dark: #222222;
-            }
-
-            .journal-bg {
-                background-color: var(--bg-color);
-                background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
-                background-size: 100% 28px;
-                font-family: 'Patrick Hand', cursive, sans-serif;
-                color: var(--text-dark);
-                padding: 30px;
-                border-radius: 8px;
-                margin-top: -10px; /* Puxa um pouco pra cima */
-            }
-
-            .main-title {
-                text-align: center;
-                font-family: 'Architects Daughter', cursive;
-                font-size: 2.2rem;
-                font-weight: bold;
-                letter-spacing: 2px;
-                margin-bottom: 20px;
-                color: var(--border-dark);
-                text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
-            }
-
-            .header-section {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 25px;
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .month-box {
-                border: 2px solid var(--border-dark);
-                background-color: var(--mint-green);
-                padding: 8px 20px;
-                border-radius: 4px;
-                box-shadow: 4px 4px 0px var(--border-dark);
-                transform: rotate(-2deg);
-                text-align: center;
-                display: flex;
-                align-items: center;
-                gap: 15px;
-            }
-
-            .month-box .month-name {
-                font-size: 1.5rem;
-                font-weight: bold;
-                font-family: 'Architects Daughter', cursive;
-            }
-
-            /* BOTÕES DE NAVEGAÇÃO (ESTILO BOTÃO DE CADERNO) */
-            .btn-journal {
-                border: 2px solid var(--border-dark);
-                background-color: white;
-                color: var(--text-dark);
-                padding: 6px 15px;
-                font-family: 'Patrick Hand', cursive;
-                font-size: 1.1rem;
-                box-shadow: 3px 3px 0px var(--border-dark);
-                transition: all 0.1s;
-                text-decoration: none;
-                display: inline-block;
-            }
-            .btn-journal:hover {
-                background-color: var(--mint-green);
-                transform: translate(2px, 2px);
-                box-shadow: 1px 1px 0px var(--border-dark);
-                color: var(--text-dark);
-            }
+            :root { --bg-color: #fcf9f5; --line-color: #e5dcd0; --mint-green: #b4e3d3; --mint-green-dark: #81c7b3; --pink: #f7b2bd; --purple: #d1b3e2; --text-dark: #333333; --border-dark: #222222; }
+            .journal-bg { background-color: var(--bg-color); background-image: linear-gradient(var(--line-color) 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive, sans-serif; color: var(--text-dark); padding: 30px; border-radius: 8px; margin-top: -10px; }
+            .main-title { text-align: center; font-family: 'Architects Daughter', cursive; font-size: 2.2rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; color: var(--border-dark); text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+            .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+            .month-box { border: 2px solid var(--border-dark); background-color: var(--mint-green); padding: 8px 20px; border-radius: 4px; box-shadow: 4px 4px 0px var(--border-dark); transform: rotate(-2deg); text-align: center; display: flex; align-items: center; gap: 15px; }
+            .month-box .month-name { font-size: 1.5rem; font-weight: bold; font-family: 'Architects Daughter', cursive; }
+            .btn-journal { border: 2px solid var(--border-dark); background-color: white; color: var(--text-dark); padding: 6px 15px; font-family: 'Patrick Hand', cursive; font-size: 1.1rem; box-shadow: 3px 3px 0px var(--border-dark); transition: all 0.1s; text-decoration: none; display: inline-block; }
+            .btn-journal:hover { background-color: var(--mint-green); transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--border-dark); color: var(--text-dark); }
             .btn-journal-purple { background-color: var(--purple); }
             .btn-journal-pink { background-color: var(--pink); }
+            .table-container { border: 2px solid var(--border-dark); background-color: rgba(255, 255, 255, 0.9); box-shadow: 6px 6px 0px var(--border-dark); border-radius: 4px; overflow: hidden; margin-bottom: 25px; position: relative; }
+            table.journal-table { width: 100%; border-collapse: collapse; text-align: left; font-family: 'Patrick Hand', cursive; }
+            .journal-table th { border-bottom: 2px solid var(--border-dark); border-right: 2px solid var(--border-dark); padding: 8px 6px; font-size: 1rem; text-align: center; font-weight: normal; background-color: var(--mint-green); color: var(--text-dark); position: sticky; top: 0; z-index: 1; }
+            .journal-table th:first-child { background-color: var(--mint-green-dark); text-align: left; padding-left: 12px; position: sticky; left: 0; z-index: 2; border-right: 2px solid var(--border-dark); min-width: 180px; }
+            .journal-table td { border-bottom: 1px dashed #a39f98; border-right: 1px solid var(--border-dark); padding: 6px 8px; height: 32px; font-size: 0.95rem; background-color: rgba(255, 255, 255, 0.6); }
+            .journal-table td:first-child { position: sticky; left: 0; background-color: rgba(180, 227, 211, 0.5); font-weight: bold; border-right: 2px solid var(--border-dark); z-index: 1; }
+            .journal-table tr:hover td { background-color: rgba(247, 178, 189, 0.3); }
+            .valor-gasto { color: #d15b6d; font-weight: bold; }
+            
+            /* NOVAS LINHAS DE TOTAL */
+            .linha-gastos td { background-color: #f7b2bd !important; border-top: 2px solid var(--border-dark); font-weight: bold; color: #222; }
+            .linha-receitas td { background-color: #b4e3d3 !important; border-top: 1px dashed var(--border-dark); font-weight: bold; color: #222; }
+            .linha-saldo td { background-color: #d1b3e2 !important; border-top: 2px solid var(--border-dark); border-bottom: 2px solid var(--border-dark); font-weight: bold; font-size: 1.05rem; color: #222; }
 
-            /* TABELA ESTILO BULLET JOURNAL */
-            .table-container {
-                border: 2px solid var(--border-dark);
-                background-color: rgba(255, 255, 255, 0.9);
-                box-shadow: 6px 6px 0px var(--border-dark);
-                border-radius: 4px;
-                overflow: hidden;
-                margin-bottom: 25px;
-                position: relative;
-            }
-
-            table.journal-table {
-                width: 100%;
-                border-collapse: collapse;
-                text-align: left;
-                font-family: 'Patrick Hand', cursive;
-            }
-
-            .journal-table th {
-                border-bottom: 2px solid var(--border-dark);
-                border-right: 2px solid var(--border-dark);
-                padding: 8px 6px;
-                font-size: 1rem;
-                text-align: center;
-                font-weight: normal;
-                background-color: var(--mint-green);
-                color: var(--text-dark);
-                position: sticky;
-                top: 0;
-                z-index: 1;
-            }
-            .journal-table th:first-child {
-                background-color: var(--mint-green-dark);
-                text-align: left;
-                padding-left: 12px;
-                position: sticky;
-                left: 0;
-                z-index: 2;
-                border-right: 2px solid var(--border-dark);
-                min-width: 180px;
-            }
-
-            .journal-table td {
-                border-bottom: 1px dashed #a39f98;
-                border-right: 1px solid var(--border-dark);
-                padding: 6px 8px;
-                height: 32px;
-                font-size: 0.95rem;
-                background-color: rgba(255, 255, 255, 0.6);
-            }
-
-            .journal-table td:first-child {
-                position: sticky;
-                left: 0;
-                background-color: rgba(180, 227, 211, 0.5);
-                font-weight: bold;
-                border-right: 2px solid var(--border-dark);
-                z-index: 1;
-            }
-
-            .journal-table tr:hover td {
-                background-color: rgba(247, 178, 189, 0.3); /* Rosa pastel no hover */
-            }
-
-            /* Cores das colunas de valores */
-            .valor-gasto {
-                color: #d15b6d; /* Vermelho pastel que combina com o fundo */
-                font-weight: bold;
-            }
-
-            /* Linha de TOTAL */
-            .linha-total td {
-                background-color: var(--purple) !important;
-                border-top: 2px solid var(--border-dark);
-                border-bottom: 2px solid var(--border-dark);
-                font-weight: bold;
-                font-size: 1.05rem;
-                color: var(--text-dark);
-            }
-
-            .meta-box {
-                border: 2px solid var(--border-dark);
-                background-color: var(--purple);
-                padding: 8px 15px;
-                border-radius: 4px;
-                box-shadow: 4px 4px 0px var(--border-dark);
-                transform: rotate(1deg);
-                font-size: 1.2rem;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
+            .meta-box { border: 2px solid var(--border-dark); background-color: var(--purple); padding: 8px 15px; border-radius: 4px; box-shadow: 4px 4px 0px var(--border-dark); transform: rotate(1deg); font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
         </style>
 
         <div class="journal-bg">
             <div class="main-title">PLANEJAMENTO FINANCEIRO</div>
 
             <div class="header-section">
-                <!-- Mês Atual -->
                 <div class="month-box">
                     <div>
                         <span style="font-size: 1rem;">Visão até</span><br>
@@ -202,7 +49,6 @@
                     </div>
                 </div>
 
-                <!-- Navegação -->
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <a href="?ano={{ ano_anterior }}&mes={{ mes_anterior }}" class="btn-journal">⏪ Anterior</a>
                     <span class="btn-journal btn-journal-purple fw-bold">{{ mes_base_nome }}</span>
@@ -256,11 +102,38 @@
                             {% endfor %}
                             
                             {% if linhas_projecao %}
-                            <tr class="linha-total">
-                                <td>TOTAL ESTIMADO</td>
+                            <!-- LINHA 1: TOTAL GASTOS (Vermelho) -->
+                            <tr class="linha-gastos">
+                                <td>TOTAL GASTOS</td>
                                 {% for m in meses_colunas %}
                                     <td class="text-end">
-                                        R$ {{ totais_colunas|get_item:m.id|moeda }}
+                                        R$ {{ totais_gastos|get_item:m.id|moeda }}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                            
+                            <!-- LINHA 2: TOTAL RECEITAS (Verde) -->
+                            <tr class="linha-receitas">
+                                <td>TOTAL RECEITAS</td>
+                                {% for m in meses_colunas %}
+                                    <td class="text-end">
+                                        R$ {{ totais_receitas|get_item:m.id|moeda }}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+
+                            <!-- LINHA 3: SALDO LIVRE (Roxo) -->
+                            <tr class="linha-saldo">
+                                <td>SALDO LIVRE</td>
+                                {% for m in meses_colunas %}
+                                    <td class="text-end">
+                                        {% with saldo=saldos_livres|get_item:m.id %}
+                                            {% if saldo < 0 %}
+                                                <span class="text-danger">- R$ {{ saldo|moeda|slice:"1:" }}</span>
+                                            {% else %}
+                                                <span class="text-success">R$ {{ saldo|moeda }}</span>
+                                            {% endif %}
+                                        {% endwith %}
                                     </td>
                                 {% endfor %}
                             </tr>
@@ -270,7 +143,6 @@
                 </div>
             </div>
             
-            <!-- Caixa Inferior -->
             <div class="d-flex justify-content-end mt-4">
                 <div class="meta-box">
                     🎯 meta: organizar o futuro

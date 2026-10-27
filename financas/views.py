@@ -1344,8 +1344,8 @@ def projecao(request):
     mes_base = int(request.GET.get('mes', mes_ativo.mes))
     
     nomes_meses = {
-        1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
-        7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+        7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
     }
 
     meses_colunas = []
@@ -1367,48 +1367,61 @@ def projecao(request):
     
     gastos_periodo = Gasto.objects.filter(
         mes__ano__in=anos_filtro
-    ).select_related('mes', 'cartao')
+    ).select_related('mes', 'cartao', 'pessoa')
+
+    # DICIONÁRIOS DE TOTAIS
+    totais_gastos = {m['id']: Decimal('0') for m in meses_colunas}
+    totais_receitas = {m['id']: Decimal('0') for m in meses_colunas}
+    saldos_livres = {m['id']: Decimal('0') for m in meses_colunas}
 
     agrupado = {}
-    totais_colunas = {m['id']: Decimal('0') for m in meses_colunas}
 
+    # 1. SOMA OS GASTOS
     for g in gastos_periodo:
         id_mes = f"{g.mes.ano}-{g.mes.mes}"
         
-        if id_mes not in totais_colunas:
+        if id_mes not in totais_gastos:
             continue
 
-        # MÁGICA AQUI: Remove o padrão " (1/10)", " - Parcela 1/10" ou " (1/10) " do final do nome
-        # O Regex procura qualquer número entre parênteses ou após a palavra "Parcela"
-        nome_limpo = re.sub(r'\s*\(\d+/\d+\)|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
-        
-        if not nome_limpo:
-            nome_limpo = g.descricao
+        nome_limpo = re.sub(r'\s*\(\d+/\d+\)', '', g.descricao).strip()
+        chave_grupo = f"{g.pessoa.nome}|{nome_limpo}"
             
-        if nome_limpo not in agrupado:
-            agrupado[nome_limpo] = {}
+        if chave_grupo not in agrupado:
+            agrupado[chave_grupo] = {
+                'categoria': nome_limpo,
+                'pessoa': g.pessoa.nome,
+                'valores': {}
+            }
             
-        if id_mes not in agrupado[nome_limpo]:
-            agrupado[nome_limpo][id_mes] = Decimal('0')
+        if id_mes not in agrupado[chave_grupo]['valores']:
+            agrupado[chave_grupo]['valores'][id_mes] = Decimal('0')
             
-        agrupado[nome_limpo][id_mes] += g.valor
-        totais_colunas[id_mes] += g.valor
+        agrupado[chave_grupo]['valores'][id_mes] += g.valor
+        totais_gastos[id_mes] += g.valor
 
-    linhas_projecao = []
-    for nome_gasto, valores_meses in agrupado.items():
-        linhas_projecao.append({
-            'categoria': nome_gasto,
-            'valores': valores_meses
-        })
-        
-    linhas_projecao = sorted(linhas_projecao, key=lambda x: x['categoria'].lower())
+    # 2. SOMA AS RECEITAS
+    receitas_periodo = Receita.objects.filter(mes__ano__in=anos_filtro)
+    for r in receitas_periodo:
+        id_mes = f"{r.mes.ano}-{r.mes.mes}"
+        if id_mes in totais_receitas:
+            totais_receitas[id_mes] += r.valor
+
+    # 3. CALCULA O SALDO LIVRE (Receitas - Gastos)
+    for m in meses_colunas:
+        id_mes = m['id']
+        saldos_livres[id_mes] = totais_receitas[id_mes] - totais_gastos[id_mes]
+
+    linhas_projecao = list(agrupado.values())
+    linhas_projecao = sorted(linhas_projecao, key=lambda x: (x['pessoa'], x['categoria'].lower()))
 
     return render(request, 'financas/projecao.html', {
         'sem_mes_ativo': False,
         'mes_ativo': mes_ativo,
         'meses_colunas': meses_colunas,
         'linhas_projecao': linhas_projecao,
-        'totais_colunas': totais_colunas,
+        'totais_gastos': totais_gastos,
+        'totais_receitas': totais_receitas,
+        'saldos_livres': saldos_livres,
         'ano_base': ano_base,
         'mes_base': mes_base,
         'mes_base_nome': f"{nomes_meses[mes_base]}/{ano_base}",
@@ -1417,6 +1430,92 @@ def projecao(request):
         'ano_posterior': data_posterior.year,
         'mes_posterior': data_posterior.month,
     })
+
+# @login_required
+# def projecao(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return render(request, 'financas/projecao.html', {'sem_mes_ativo': True})
+
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+    
+#     ano_base = int(request.GET.get('ano', mes_ativo.ano))
+#     mes_base = int(request.GET.get('mes', mes_ativo.mes))
+    
+#     nomes_meses = {
+#         1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+#         7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+#     }
+
+#     meses_colunas = []
+#     data_atual = date(ano_base, mes_base, 1)
+    
+#     for i in range(12):
+#         mes_alvo = data_atual + relativedelta(months=i)
+#         meses_colunas.append({
+#             'id': f"{mes_alvo.year}-{mes_alvo.month}",
+#             'nome': f"{nomes_meses[mes_alvo.month]}/{mes_alvo.year}", 
+#             'ano': mes_alvo.year,
+#             'mes': mes_alvo.month,
+#         })
+
+#     data_anterior = data_atual - relativedelta(months=1)
+#     data_posterior = data_atual + relativedelta(months=1)
+    
+#     anos_filtro = list(set([m['ano'] for m in meses_colunas]))
+    
+#     gastos_periodo = Gasto.objects.filter(
+#         mes__ano__in=anos_filtro
+#     ).select_related('mes', 'cartao')
+
+#     agrupado = {}
+#     totais_colunas = {m['id']: Decimal('0') for m in meses_colunas}
+
+#     for g in gastos_periodo:
+#         id_mes = f"{g.mes.ano}-{g.mes.mes}"
+        
+#         if id_mes not in totais_colunas:
+#             continue
+
+#         # MÁGICA AQUI: Remove o padrão " (1/10)", " - Parcela 1/10" ou " (1/10) " do final do nome
+#         # O Regex procura qualquer número entre parênteses ou após a palavra "Parcela"
+#         nome_limpo = re.sub(r'\s*\(\d+/\d+\)|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
+        
+#         if not nome_limpo:
+#             nome_limpo = g.descricao
+            
+#         if nome_limpo not in agrupado:
+#             agrupado[nome_limpo] = {}
+            
+#         if id_mes not in agrupado[nome_limpo]:
+#             agrupado[nome_limpo][id_mes] = Decimal('0')
+            
+#         agrupado[nome_limpo][id_mes] += g.valor
+#         totais_colunas[id_mes] += g.valor
+
+#     linhas_projecao = []
+#     for nome_gasto, valores_meses in agrupado.items():
+#         linhas_projecao.append({
+#             'categoria': nome_gasto,
+#             'valores': valores_meses
+#         })
+        
+#     linhas_projecao = sorted(linhas_projecao, key=lambda x: x['categoria'].lower())
+
+#     return render(request, 'financas/projecao.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'meses_colunas': meses_colunas,
+#         'linhas_projecao': linhas_projecao,
+#         'totais_colunas': totais_colunas,
+#         'ano_base': ano_base,
+#         'mes_base': mes_base,
+#         'mes_base_nome': f"{nomes_meses[mes_base]}/{ano_base}",
+#         'ano_anterior': data_anterior.year,
+#         'mes_anterior': data_anterior.month,
+#         'ano_posterior': data_posterior.year,
+#         'mes_posterior': data_posterior.month,
+#     })
 
 # @login_required
 # def projecao(request):
