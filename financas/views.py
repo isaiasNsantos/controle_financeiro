@@ -1369,21 +1369,25 @@ def projecao(request):
         mes__ano__in=anos_filtro
     ).select_related('mes', 'cartao', 'pessoa')
 
-    # DICIONÁRIOS DE TOTAIS
     totais_gastos = {m['id']: Decimal('0') for m in meses_colunas}
     totais_receitas = {m['id']: Decimal('0') for m in meses_colunas}
     saldos_livres = {m['id']: Decimal('0') for m in meses_colunas}
 
     agrupado = {}
 
-    # 1. SOMA OS GASTOS
     for g in gastos_periodo:
         id_mes = f"{g.mes.ano}-{g.mes.mes}"
         
         if id_mes not in totais_gastos:
             continue
 
-        nome_limpo = re.sub(r'\s*\(\d+/\d+\)', '', g.descricao).strip()
+        # MÁGICA AQUI: O Regex limpa o nome de qualquer jeito que a parcela foi escrita
+        nome_limpo = re.sub(r'\s*\(?\d+/\d+\)?|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
+        
+        # Se por algum motivo o nome ficar vazio, usa a descrição original
+        if not nome_limpo:
+            nome_limpo = g.descricao
+            
         chave_grupo = f"{g.pessoa.nome}|{nome_limpo}"
             
         if chave_grupo not in agrupado:
@@ -1399,14 +1403,12 @@ def projecao(request):
         agrupado[chave_grupo]['valores'][id_mes] += g.valor
         totais_gastos[id_mes] += g.valor
 
-    # 2. SOMA AS RECEITAS
     receitas_periodo = Receita.objects.filter(mes__ano__in=anos_filtro)
     for r in receitas_periodo:
         id_mes = f"{r.mes.ano}-{r.mes.mes}"
         if id_mes in totais_receitas:
             totais_receitas[id_mes] += r.valor
 
-    # 3. CALCULA O SALDO LIVRE (Receitas - Gastos)
     for m in meses_colunas:
         id_mes = m['id']
         saldos_livres[id_mes] = totais_receitas[id_mes] - totais_gastos[id_mes]
