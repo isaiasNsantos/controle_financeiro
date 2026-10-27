@@ -1377,9 +1377,48 @@ def gasto_criar(request):
     if request.method == 'POST':
         form = GastoForm(request.POST)
         if form.is_valid():
-            gasto = form.save(commit=False)
-            gasto.mes = Mes.objects.get(id=mes_ativo_id)
-            gasto.save()
+            # Pega os dados do formulário
+            gasto_base = form.save(commit=False)
+            gasto_base.mes = Mes.objects.get(id=mes_ativo_id)
+            
+            # Lê a quantidade de parcelas (se não preencher, é 1)
+            parcelas = form.cleaned_data.get('parcelas') or 1
+            valor_total = gasto_base.valor
+            
+            if parcelas > 1:
+                # Divide o valor total pelo número de parcelas
+                valor_parcela = valor_total / parcelas
+                # Arredonda pra 2 casas decimais (Ex: 3333.33)
+                valor_parcela = round(valor_parcela, 2)
+                
+                data_base = gasto_base.data
+                
+                for i in range(parcelas):
+                    # 1. Cria uma cópia do objeto base
+                    novo_gasto = Gasto.objects.create(
+                        mes=gasto_base.mes, # Vamos atualizar isso abaixo
+                        descricao=f"{gasto_base.descricao} ({i+1}/{parcelas})",
+                        valor=valor_parcela,
+                        data=data_base,
+                        categoria=gasto_base.categoria,
+                        pessoa=gasto_base.pessoa,
+                        forma_pagamento=gasto_base.forma_pagamento,
+                        cartao=gasto_base.cartao
+                    )
+                    
+                    # 2. Joga a data e o mês para frente (se for a partir da 2ª parcela)
+                    if i > 0:
+                        nova_data = data_base + relativedelta(months=i)
+                        novo_mes, _ = Mes.objects.get_or_create(ano=nova_data.year, mes=nova_data.month)
+                        novo_gasto.data = nova_data
+                        novo_gasto.mes = novo_mes
+                        novo_gasto.save()
+                        
+            else:
+                # Se for só 1 parcela, salva normal
+                gasto_base.save()
+                
+            messages.success(request, 'Gasto lançado com sucesso!')
             return redirect('gasto_lista')
     else:
         form = GastoForm()
@@ -1394,6 +1433,33 @@ def gasto_criar(request):
         'form': form,
         'total': sum(g.valor for g in gastos),
     })
+
+# @login_required
+# def gasto_criar(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return redirect('mes_lista')
+
+#     if request.method == 'POST':
+#         form = GastoForm(request.POST)
+#         if form.is_valid():
+#             gasto = form.save(commit=False)
+#             gasto.mes = Mes.objects.get(id=mes_ativo_id)
+#             gasto.save()
+#             return redirect('gasto_lista')
+#     else:
+#         form = GastoForm()
+
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#     gastos = Gasto.objects.filter(mes=mes_ativo)
+
+#     return render(request, 'financas/gasto_lista.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'gastos': gastos,
+#         'form': form,
+#         'total': sum(g.valor for g in gastos),
+#     })
 
 @login_required
 def gasto_excluir(request, gasto_id):

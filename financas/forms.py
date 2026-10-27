@@ -158,12 +158,21 @@ class ReceitaForm(forms.ModelForm):
         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
 
 class GastoForm(forms.ModelForm):
+    # Campo extra que NÃO existe no banco, só na tela
+    parcelas = forms.IntegerField(
+        required=False, 
+        min_value=1, 
+        initial=1, 
+        label="Parcelas",
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
+    )
+
     class Meta:
         model = Gasto
         fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento', 'cartao']
         widgets = {
-            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Compra do mês, Luz, Farmácia'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Notebook, Geladeira'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Valor TOTAL da compra'}),
             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'pessoa': forms.Select(attrs={'class': 'form-select'}),
@@ -176,15 +185,42 @@ class GastoForm(forms.ModelForm):
         if not self.instance.pk:
             self.fields['data'].initial = date.today()
         
-        # Filtra só o que tá ativo nos dropdowns
         self.fields['categoria'].queryset = Categoria.objects.filter(ativo=True)
         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
         self.fields['forma_pagamento'].queryset = FormaPagamento.objects.filter(ativo=True)
         self.fields['cartao'].queryset = Cartao.objects.filter(ativo=True)
         
-        # Adiciona a opção "Nenhum" pro cartão não ser obrigatório
         self.fields['cartao'].required = False
         self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
+
+# class GastoForm(forms.ModelForm):
+#     class Meta:
+#         model = Gasto
+#         fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento', 'cartao']
+#         widgets = {
+#             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Compra do mês, Luz, Farmácia'}),
+#             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+#             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             'categoria': forms.Select(attrs={'class': 'form-select'}),
+#             'pessoa': forms.Select(attrs={'class': 'form-select'}),
+#             'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
+#             'cartao': forms.Select(attrs={'class': 'form-select'}),
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if not self.instance.pk:
+#             self.fields['data'].initial = date.today()
+        
+#         # Filtra só o que tá ativo nos dropdowns
+#         self.fields['categoria'].queryset = Categoria.objects.filter(ativo=True)
+#         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
+#         self.fields['forma_pagamento'].queryset = FormaPagamento.objects.filter(ativo=True)
+#         self.fields['cartao'].queryset = Cartao.objects.filter(ativo=True)
+        
+#         # Adiciona a opção "Nenhum" pro cartão não ser obrigatório
+#         self.fields['cartao'].required = False
+#         self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
 
 # class GastoForm(forms.ModelForm):
 #     class Meta:
