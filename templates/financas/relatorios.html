@@ -1,0 +1,219 @@
+{% extends 'financas/base.html' %}
+{% load formatacao %}
+
+{% block title %}Relatórios - Controle Financeiro{% endblock %}
+
+{% block content %}
+    {% if sem_mes_ativo %}
+        <div class="alert alert-warning py-2">
+            ⚠️ Nenhum mês ativo. Vá em <a href="/financas/meses/">Meses</a>.
+        </div>
+    {% else %}
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+            .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+            .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; margin-bottom: 20px; text-align: center; }
+            .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; height: 100%; }
+            .card-header-journal { border-bottom: 2px solid #222; font-family: 'Architects Daughter', cursive; font-size: 1.2rem; padding: 10px 15px; font-weight: bold; }
+            
+            .progress-journal { border: 2px solid #222; border-radius: 4px; height: 20px !important; background-color: #fff; overflow: hidden; }
+            .progress-bar-journal { background-color: #b4e3d3; border-right: 2px solid #222; }
+            
+            .list-item-journal { border-bottom: 1px dashed #a39f98; padding: 12px 15px; }
+            .list-item-journal:last-child { border-bottom: none; }
+
+            /* Estilo da Tabela de Extrato */
+            .table-journal { font-family: 'Patrick Hand', cursive; font-size: 1.05rem; margin-bottom: 0; }
+            .table-journal th { border-bottom: 2px solid #222 !important; background: #a8c8f0 !important; text-align: left; font-family: 'Architects Daughter'; font-weight: normal; padding: 8px 12px; }
+            .table-journal td { border-bottom: 1px dashed #a39f98 !important; padding: 8px 12px; vertical-align: middle; }
+            .table-journal tr:hover td { background-color: rgba(180, 227, 211, 0.2); }
+
+            /* ESTILO POST-IT PARA AS DICAS */
+            .postit-dica {
+                background-color: #fce8a1;
+                border: 2px solid #222;
+                box-shadow: 4px 4px 0px #222;
+                padding: 15px;
+                margin-bottom: 15px;
+                transform: rotate(-1deg);
+                font-size: 1.1rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .postit-dica:nth-child(even) { transform: rotate(1deg); background-color: #b4e3d3; }
+        </style>
+
+        <div class="journal-bg">
+            <div class="main-title">RELATÓRIOS INTELIGENTES</div>
+            
+            <div class="text-center mb-4" style="font-size: 1.2rem;">
+                Análise do mês de <strong>{{ mes_ativo }}</strong><br>
+                <!-- BOTÃO EXPORTAR EXCEL -->
+                <a href="{% url 'exportar_relatorio' %}" class="btn btn-journal mt-2" style="background: #b4e3d3; border: 2px solid #222; box-shadow: 3px 3px 0px #222; text-decoration: none; color: #222;">
+                    <i class="bi bi-file-earmark-excel"></i> Exportar para Excel
+                </a>
+            </div>
+
+            <!-- DICAS DE ECONOMIA -->
+            {% if dicas %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 style="font-family: 'Architects Daughter';"><i class="bi bi-lightbulb"></i> Dicas do Sistema</h5>
+                        {% for dica in dicas %}
+                            <div class="postit-dica">
+                                <i class="bi bi-pin-angle-fill fs-4" style="color: #dc2626;"></i>
+                                <div>{{ dica }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- BLOCOS DE RESUMO -->
+            <div class="row g-3 mb-4">
+                
+                <!-- 1. GASTOS POR PESSOA -->
+                <div class="col-md-5">
+                    <div class="card card-journal">
+                        <div class="card-header-journal" style="background-color: #a8c8f0;">
+                            <i class="bi bi-people-fill"></i> Quem gastou o quê?
+                        </div>
+                        <div class="card-body p-0">
+                            {% for p in gastos_por_pessoa %}
+                                <div class="list-item-journal d-flex justify-content-between align-items-center">
+                                    <div class="fw-bold fs-5">{{ p.pessoa__nome }}</div>
+                                    <div class="fs-5 text-vermelho fw-bold">R$ {{ p.total|moeda }}</div>
+                                </div>
+                            {% empty %}
+                                <div class="p-3 text-center text-muted">Nenhum gasto registrado.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. RANKING DE CATEGORIAS E CARTÕES -->
+                <div class="col-md-7">
+                    <div class="card card-journal">
+                        <div class="card-header-journal" style="background-color: #f7b2bd;">
+                            <i class="bi bi-trophy-fill"></i> Para onde foi o dinheiro? (Top 5)
+                        </div>
+                        <div class="card-body p-3">
+                            {% if top_categorias %}
+                                {% for c in top_categorias %}
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="fw-bold fs-5">
+                                                {{ c.nome }}
+                                                {% if c.tipo == 'Cartão' %}
+                                                    <span class="badge" style="background:#d1b3e2; border:1px solid #222; font-size:0.7rem;"><i class="bi bi-credit-card"></i> Cartão</span>
+                                                {% endif %}
+                                            </span>
+                                            <span class="text-vermelho fw-bold">R$ {{ c.total|moeda }}</span>
+                                        </div>
+                                        <div class="progress progress-journal">
+                                            <div class="progress-bar progress-bar-journal" style="width: {% widthratio c.total top_categorias.0.total 100 %}%; background-color: {% if forloop.first %}#f7b2bd{% elif forloop.counter == 2 %}#d1b3e2{% elif forloop.counter == 3 %}#a8c8f0{% else %}#b4e3d3{% endif %};"></div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">Nenhum gasto registrado.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MÉDIA DE GASTOS -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-journal">
+                        <div class="card-header-journal" style="background-color: #b4e3d3;">
+                            <i class="bi bi-graph-up"></i> Onde o dinheiro mais escorre (Média últimos 3 meses)
+                        </div>
+                        <div class="card-body p-4">
+                            {% if media_categorias %}
+                                {% for m in media_categorias %}
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="fs-5 fw-bold">{{ m.nome }}</span>
+                                            <span class="fs-5 text-vermelho fw-bold">R$ {{ m.media|moeda }} /mês</span>
+                                        </div>
+                                        <div class="progress progress-journal">
+                                            <div class="progress-bar progress-bar-journal" style="width: {% widthratio m.media media_categorias.0.media 100 %}%; background-color: #b4e3d3;"></div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted">Ainda não há histórico suficiente.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. EXTRATO COMPLETO DE GASTOS -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-journal">
+                        <div class="card-header-journal" style="background-color: #d1b3e2; display: flex; justify-content: space-between;">
+                            <span><i class="bi bi-list-ul"></i> Extrato Completo do Mês</span>
+                            <span class="text-dark">Total: R$ {{ total_gasto_mes|moeda }}</span>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if lista_completa_gastos %}
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table class="table table-journal align-middle">
+                                        <thead style="position: sticky; top: 0; z-index: 1;">
+                                            <tr>
+                                                <th>Data</th>
+                                                <th>Descrição</th>
+                                                <th>Pessoa</th>
+                                                <th>Categoria</th>
+                                                <th class="text-end">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for g in lista_completa_gastos %}
+                                                <tr>
+                                                    <td>{{ g.data|date:"d/m" }}</td>
+                                                    <td class="fw-bold">
+                                                        {{ g.descricao }}
+                                                        {% if g.cartao %}
+                                                            <span class="badge ms-1" style="background:#d1b3e2; border:1px solid #222; font-size:0.65rem;"><i class="bi bi-credit-card"></i> {{ g.cartao.nome }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ g.pessoa.nome }}</td>
+                                                    <td>
+                                                        {% if g.categoria.tipo == 'E' %}
+                                                            <span class="badge" style="background:#b4e3d3; border:1px solid #222; color:#222;">{{ g.categoria.nome }}</span>
+                                                        {% else %}
+                                                            <span class="badge" style="background:#a8c8f0; border:1px solid #222; color:#222;">{{ g.categoria.nome }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end text-vermelho fw-bold">R$ {{ g.valor|moeda }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        <tfoot style="position: sticky; bottom: 0; background-color: #f7b2bd; z-index: 1;">
+                                            <tr>
+                                                <td colspan="4" class="text-end fw-bold fs-5" style="border-top: 2px solid #222;">SOMA TOTAL:</td>
+                                                <td class="text-end fw-bold fs-5 text-dark" style="border-top: 2px solid #222;">R$ {{ total_gasto_mes|moeda }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="p-5 text-center text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                    Nenhum gasto lançado neste mês.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    {% endif %}
+{% endblock %}
