@@ -11,10 +11,10 @@
     {% else %}
         <!-- CABEÇALHO -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-            <h5 class="mb-0 text-purple fw-bold">Receitas — {{ mes_ativo }}</h5>
+            <h5 class="mb-0 text-dark fw-bold">Receitas — {{ mes_ativo }}</h5>
             <div class="d-flex gap-2 align-items-center">
-                <span class="badge bg-neon fs-6">Total: R$ {{ total|moeda }}</span>
-                <button class="btn btn-neon fw-bold shadow-sm text-white" type="button" data-bs-toggle="collapse" data-bs-target="#formNovaReceita">
+                <span class="badge bg-azul fs-6">Total: R$ {{ total|moeda }}</span>
+                <button class="btn btn-azul fw-bold shadow-sm text-white" type="button" data-bs-toggle="collapse" data-bs-target="#formNovaReceita">
                     <i class="bi bi-plus-circle"></i> Nova Receita
                 </button>
             </div>
@@ -22,8 +22,8 @@
 
         <!-- FORMULÁRIO (Escondido) -->
         <div class="collapse mb-4" id="formNovaReceita">
-            <div class="card card-form p-4 border-top border-4" style="border-top-color: #10b981 !important;">
-                <h6 class="fw-bold text-neon mb-3"><i class="bi bi-pencil-square"></i> Lançar Nova Receita</h6>
+            <div class="card card-form p-4 border-top border-4" style="border-top-color: #2563eb !important;">
+                <h6 class="fw-bold text-azul mb-3"><i class="bi bi-pencil-square"></i> Lançar Nova Receita</h6>
                 <form method="post" action="{% url 'receita_criar' %}">
                     {% csrf_token %}
                     <div class="row g-3">
@@ -44,7 +44,7 @@
                             {{ form.pessoa }}
                         </div>
                         <div class="col-md-8 d-flex align-items-end">
-                            <button type="submit" class="btn btn-neon text-white w-100 fw-bold py-2">Salvar Receita</button>
+                            <button type="submit" class="btn btn-azul text-white w-100 fw-bold py-2">Salvar Receita</button>
                         </div>
                     </div>
                 </form>
@@ -57,11 +57,11 @@
                 <table class="table table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-4" style="width: 10%;">Data</th>
-                            <th style="width: 15%;">Pessoa</th>
-                            <th style="width: 60%;">Descrição</th>
-                            <th class="text-end" style="width: 10%;">Valor</th>
-                            <th class="text-end pe-4" style="width: 5%;">Ações</th>
+                            <th class="ps-4 text-dark" style="width: 10%;">Data</th>
+                            <th class="text-dark" style="width: 15%;">Pessoa</th>
+                            <th class="text-dark" style="width: 60%;">Descrição</th>
+                            <th class="text-end text-dark" style="width: 10%;">Valor</th>
+                            <th class="text-end pe-4 text-dark" style="width: 5%;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -70,7 +70,7 @@
                                 <td class="ps-4 text-muted">{{ receita.data|date:"d/m/Y" }}</td>
                                 <td class="fw-bold text-secondary">{{ receita.pessoa.nome }}</td>
                                 <td class="fw-bold text-dark">{{ receita.descricao }}</td>
-                                <td class="text-end text-neon fw-bold">R$ {{ receita.valor|moeda }}</td>
+                                <td class="text-end text-azul fw-bold">R$ {{ receita.valor|moeda }}</td>
                                 <td class="text-end pe-4">
                                     <a href="{% url 'receita_editar' receita.id %}" class="btn btn-sm btn-link text-secondary p-1" title="Editar">
                                         <i class="bi bi-pencil-square fs-5"></i>
