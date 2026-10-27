@@ -89,37 +89,38 @@ def mes_lista(request):
         'mes_ativo_id': mes_ativo_id,
     })
 
-
+@login_required
 def mes_criar(request):
     if request.method == 'POST':
         form = MesForm(request.POST)
         if form.is_valid():
             novo_mes = form.save(commit=False)
             
-            # Descobre qual foi o último mês que teve receita
+            # Busca o último mês que tem receitas lançadas (para copiar)
             ultimo_mes_com_receita = Mes.objects.filter(receitas__isnull=False).order_by('-ano', '-mes').first()
             
-            # Se existir um mês anterior, copia as receitas dele
             if ultimo_mes_com_receita:
                 receitas_antigas = Receita.objects.filter(mes=ultimo_mes_com_receita)
-                novo_mes.save() # Salva o mês novo primeiro
+                novo_mes.save() # Salva o mês novo no banco
                 
+                # Copia cada receita pro novo mês
                 for r in receitas_antigas:
                     Receita.objects.create(
                         mes=novo_mes,
                         descricao=r.descricao,
                         valor=r.valor,
-                        data=date(novo_mes.ano, novo_mes.mes, 1), # Dia 1 do novo mês
+                        data=date(novo_mes.ano, novo_mes.mes, 1), # Coloca a data como dia 1 do novo mês
                         pessoa=r.pessoa
                     )
-                messages.success(request, f'Mês {novo_mes} criado e receitas de {ultimo_mes_com_receita} copiadas!')
+                messages.success(request, f'Mês {novo_mes} criado! As receitas de {ultimo_mes_com_receita} foram copiadas.')
             else:
                 novo_mes.save()
-                messages.success(request, f'Mês {novo_mes} criado!')
+                messages.success(request, f'Mês {novo_mes} criado sem cópia de receitas (não havia mês anterior).')
                 
             return redirect('mes_lista')
     else:
         form = MesForm()
+        
     return render(request, 'financas/mes_lista.html', {
         'meses': Mes.objects.filter(fechado=False),
         'meses_fechados': Mes.objects.filter(fechado=True),
@@ -127,34 +128,71 @@ def mes_criar(request):
         'mes_ativo_id': request.session.get('mes_ativo_id'),
     })
 
-def mes_selecionar(request, mes_id):
-    if request.method == 'POST':
-        request.session['mes_ativo_id'] = mes_id
-    return redirect('mes_lista')
+# def mes_criar(request):
+#     if request.method == 'POST':
+#         form = MesForm(request.POST)
+#         if form.is_valid():
+#             novo_mes = form.save(commit=False)
+            
+#             # Descobre qual foi o último mês que teve receita
+#             ultimo_mes_com_receita = Mes.objects.filter(receitas__isnull=False).order_by('-ano', '-mes').first()
+            
+#             # Se existir um mês anterior, copia as receitas dele
+#             if ultimo_mes_com_receita:
+#                 receitas_antigas = Receita.objects.filter(mes=ultimo_mes_com_receita)
+#                 novo_mes.save() # Salva o mês novo primeiro
+                
+#                 for r in receitas_antigas:
+#                     Receita.objects.create(
+#                         mes=novo_mes,
+#                         descricao=r.descricao,
+#                         valor=r.valor,
+#                         data=date(novo_mes.ano, novo_mes.mes, 1), # Dia 1 do novo mês
+#                         pessoa=r.pessoa
+#                     )
+#                 messages.success(request, f'Mês {novo_mes} criado e receitas de {ultimo_mes_com_receita} copiadas!')
+#             else:
+#                 novo_mes.save()
+#                 messages.success(request, f'Mês {novo_mes} criado!')
+                
+#             return redirect('mes_lista')
+#     else:
+#         form = MesForm()
+#     return render(request, 'financas/mes_lista.html', {
+#         'meses': Mes.objects.filter(fechado=False),
+#         'meses_fechados': Mes.objects.filter(fechado=True),
+#         'form': form,
+#         'mes_ativo_id': request.session.get('mes_ativo_id'),
+#     })
 
-# ---------- RECEITAS ----------
-def receita_lista(request):
-    mes_ativo_id = request.session.get('mes_ativo_id')
-    if not mes_ativo_id:
-        return render(request, 'financas/receita_lista.html', {
-            'sem_mes_ativo': True,
-            'receitas': [],
-            'form': None,
-        })
+# def mes_selecionar(request, mes_id):
+#     if request.method == 'POST':
+#         request.session['mes_ativo_id'] = mes_id
+#     return redirect('mes_lista')
 
-    mes_ativo = Mes.objects.get(id=mes_ativo_id)
-    receitas = Receita.objects.filter(mes=mes_ativo)
-    form = ReceitaForm()
+# # ---------- RECEITAS ----------
+# def receita_lista(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return render(request, 'financas/receita_lista.html', {
+#             'sem_mes_ativo': True,
+#             'receitas': [],
+#             'form': None,
+#         })
 
-    total = sum(r.valor for r in receitas)
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#     receitas = Receita.objects.filter(mes=mes_ativo)
+#     form = ReceitaForm()
 
-    return render(request, 'financas/receita_lista.html', {
-        'sem_mes_ativo': False,
-        'mes_ativo': mes_ativo,
-        'receitas': receitas,
-        'form': form,
-        'total': total,
-    })
+#     total = sum(r.valor for r in receitas)
+
+#     return render(request, 'financas/receita_lista.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'receitas': receitas,
+#         'form': form,
+#         'total': total,
+#     })
 
 
 def receita_criar(request):
