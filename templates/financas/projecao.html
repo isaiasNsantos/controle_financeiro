@@ -9,42 +9,93 @@
             ⚠️ Nenhum mês ativo. <a href="/financas/meses/">Selecione um mês</a>.
         </div>
     {% else %}
+        <style>
+            /* ESTILOS ESPECÍFICOS DA PROJEÇÃO (COMPACTO E RETO) */
+            .tabela-projecao { font-family: 'Poppins', sans-serif; font-size: 0.7rem; }
+            .tabela-projecao th, .tabela-projecao td { 
+                padding: 0.3rem 0.4rem !important; 
+                border-color: #e2e8f0 !important; 
+                vertical-align: middle;
+            }
+            .tabela-projecao thead th { 
+                font-weight: 500; 
+                background-color: #1e1b4b !important; 
+                color: white !important; 
+                border-bottom: 2px solid #0f172a !important;
+                text-align: center;
+                font-size: 0.7rem;
+            }
+            
+            /* PADRONIZAÇÃO DOS BOTÕES E BADGES (TODOS DO MESMO TAMANHO) */
+            .btn-padrao { 
+                border-radius: 0 !important; 
+                font-weight: 500 !important; 
+                height: 32px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 12px;
+                font-size: 0.75rem;
+            }
+            .badge-padrao {
+                border-radius: 0 !important;
+                height: 32px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 12px;
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+            .coluna-nome { 
+                position: sticky; left: 0; background-color: white !important; z-index: 2; 
+                max-width: 180px; overflow: hidden; text-overflow: ellipsis; 
+                border-right: 2px solid #cbd5e1 !important;
+            }
+            .linha-total td {
+                background-color: #f8fafc !important;
+                font-weight: 600 !important;
+                border-top: 2px solid #94a3b8 !important;
+            }
+        </style>
+
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
             <div>
-                <h4 class="mb-0 fw-bold text-dark">Planilha de Projeção</h4>
+                <h5 class="mb-0 fw-bold text-dark">Planilha de Projeção</h5>
                 <p class="text-muted small mb-0">Visão futura das suas parcelas</p>
             </div>
             
-            <!-- BOTÕES DE NAVEGAÇÃO -->
-            <div class="d-flex align-items-center gap-2">
-                <a href="?ano={{ ano_anterior }}&mes={{ mes_anterior }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
-                    <i class="bi bi-chevron-left"></i> Anterior
+            <!-- BOTÕES DE NAVEGAÇÃO PADRONIZADOS -->
+            <div class="d-flex align-items-center gap-1">
+                <a href="?ano={{ ano_anterior }}&mes={{ mes_anterior }}" class="btn btn-sm btn-outline-secondary btn-padrao">
+                    <i class="bi bi-chevron-left"></i> Ant
                 </a>
                 
-                <span class="badge bg-roxo px-3 py-2 fs-6 shadow-sm">
-                    Início: {{ mes_base_nome }}
+                <span class="badge bg-roxo text-white badge-padrao">
+                    {{ mes_base_nome }}
                 </span>
                 
-                <a href="?ano={{ ano_posterior }}&mes={{ mes_posterior }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
-                    Próximo <i class="bi bi-chevron-right"></i>
+                <a href="?ano={{ ano_posterior }}&mes={{ mes_posterior }}" class="btn btn-sm btn-outline-secondary btn-padrao">
+                    Próx <i class="bi bi-chevron-right"></i>
                 </a>
                 
                 {% if ano_base != mes_ativo.ano or mes_base != mes_ativo.mes %}
-                    <a href="{% url 'projecao' %}" class="btn btn-sm btn-verde fw-bold ms-2 shadow-sm text-white">
-                        Voltar ao Mês Atual
+                    <a href="{% url 'projecao' %}" class="btn btn-sm btn-verde text-white btn-padrao ms-1">
+                        Atual
                     </a>
                 {% endif %}
             </div>
         </div>
 
-        <div class="card card-form p-0 overflow-hidden mb-4">
+        <div class="card card-form p-0 mb-4" style="border-radius: 0 !important;">
             <div class="table-responsive" style="max-height: 80vh; overflow: auto;">
-                <table class="table table-bordered table-hover mb-0" style="font-size: 0.75rem; white-space: nowrap;">
-                    <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+                <table class="table table-bordered table-hover mb-0 tabela-projecao">
+                    <thead style="position: sticky; top: 0; z-index: 1;">
                         <tr>
-                            <th class="text-start ps-3 py-3" style="min-width: 200px; position: sticky; left: 0; background-color: #1e1b4b; color: white; z-index: 2;">Despesa / Descrição</th>
+                            <th class="text-start ps-2 coluna-nome" style="background-color: #1e1b4b !important; color: white;">Despesa / Dono</th>
                             {% for m in meses_colunas %}
-                                <th class="text-center py-3">{{ m.nome }}</th>
+                                <th>{{ m.nome }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -52,16 +103,19 @@
                         <!-- LINHAS DE GASTOS -->
                         {% for linha in linhas_projecao %}
                             <tr>
-                                <td class="text-start fw-bold ps-3 text-dark" style="position: sticky; left: 0; background-color: white; border-right: 2px solid #e2e8f0; max-width: 200px;">
+                                <td class="text-start ps-2 text-dark coluna-nome">
+                                    {% if linha.pessoa %}
+                                        <span class="text-muted" style="font-size: 0.65rem;">{{ linha.pessoa }} • </span>
+                                    {% endif %}
                                     {{ linha.categoria }}
                                 </td>
                                 {% for m in meses_colunas %}
                                     <td class="text-end px-2">
                                         {% with valor=linha.valores|get_item:m.id %}
                                             {% if valor %}
-                                                <span class="text-vermelho fw-bold">R$ {{ valor|moeda }}</span>
+                                                <span class="text-vermelho">R$ {{ valor|moeda }}</span>
                                             {% else %}
-                                                <span class="text-muted" style="font-size: 0.7rem;">-</span>
+                                                <span class="text-muted" style="font-size: 0.6rem;">-</span>
                                             {% endif %}
                                         {% endwith %}
                                     </td>
@@ -69,8 +123,7 @@
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="13" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                <td colspan="13" class="text-center text-muted py-4">
                                     Nenhum gasto lançado nos próximos 12 meses.
                                 </td>
                             </tr>
@@ -78,10 +131,10 @@
                         
                         <!-- LINHA DE TOTAL -->
                         {% if linhas_projecao %}
-                        <tr class="table-dark fw-bold">
-                            <td class="text-start ps-3" style="position: sticky; left: 0; background-color: #1e1b4b; color: white; z-index: 1; border-top: 2px solid #000;">TOTAL ESTIMADO</td>
+                        <tr class="linha-total">
+                            <td class="text-start ps-2 text-dark coluna-nome" style="background-color: #f8fafc !important;">TOTAL</td>
                             {% for m in meses_colunas %}
-                                <td class="text-end px-2 text-verde" style="font-size: 0.85rem;">
+                                <td class="text-end px-2 text-verde">
                                     R$ {{ totais_colunas|get_item:m.id|moeda }}
                                 </td>
                             {% endfor %}
@@ -90,10 +143,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <div class="alert alert-info py-2 small border-0 shadow-sm">
-            <i class="bi bi-info-circle"></i> As parcelas de cartão e gastos manuais parcelados já estão agrupados por nome (ex: "Jim.Com") e distribuídos nos meses corretos.
         </div>
     {% endif %}
 {% endblock %}
