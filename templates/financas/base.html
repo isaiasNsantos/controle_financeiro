@@ -19,11 +19,11 @@
             color: #333; 
         }
 
-        /* MENU CADERNO */
+        /* MENU CADERNO MELHORADO */
         .navbar-custom {
             background-color: #f1f5f9;
             border-bottom: 2px solid #222;
-            padding: 0.5rem 0;
+            padding: 0.8rem 0; /* Aumentei o padding pra ficar mais alto */
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
@@ -31,20 +31,20 @@
             font-family: 'Architects Daughter', cursive;
             font-weight: bold;
             color: #1e1b4b !important;
-            font-size: 1.2rem;
+            font-size: 1.4rem; /* Aumentei a fonte do logo */
             letter-spacing: -0.5px;
         }
 
         .nav-link-custom {
             color: #475569 !important;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 1rem; /* Aumentei a fonte dos links */
             padding: 0.4rem 0.6rem !important;
             border-radius: 4px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             text-decoration: none;
             font-family: 'Patrick Hand', cursive;
         }
@@ -61,11 +61,11 @@
             background: #fee2e2;
             border: 2px solid #222;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.9rem; /* Aumentei o botão sair */
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 0.3rem 0.6rem;
+            gap: 5px;
+            padding: 0.3rem 0.8rem;
             border-radius: 4px;
             box-shadow: 2px 2px 0px #222;
             transition: 0.1s;
@@ -109,29 +109,29 @@
     <nav class="navbar navbar-expand navbar-custom mb-4 sticky-top">
         <div class="container-fluid px-3 px-md-4">
             
-            <!-- LOGO -->
-            <a class="navbar-brand d-flex align-items-center gap-2 me-3" href="/financas/">
-                <div style="background: #8b5cf6; color: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 2px solid #222; box-shadow: 2px 2px 0px #222;">
-                    <i class="bi bi-wallet2" style="font-size: 1rem;"></i>
+            <!-- LOGO MAIOR -->
+            <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="/financas/">
+                <div style="background: #8b5cf6; color: white; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; border: 2px solid #222; box-shadow: 2px 2px 0px #222;">
+                    <i class="bi bi-wallet2" style="font-size: 1.2rem;"></i>
                 </div>
                 <span class="d-none d-sm-block">Meu Financeiro</span>
             </a>
 
-            <!-- MENU -->
-            <div class="navbar-nav flex-row nav-scroll align-items-center gap-1">
+            <!-- MENU COM FONTES MAIORES -->
+            <div class="navbar-nav flex-row nav-scroll align-items-center gap-2">
                 <a class="nav-link-custom" href="/financas/"><i class="bi bi-grid-1x2"></i> Dash</a>
                 <a class="nav-link-custom" href="/financas/receitas/"><i class="bi bi-arrow-down-circle"></i> Receitas</a>
                 <a class="nav-link-custom" href="/financas/gastos/"><i class="bi bi-arrow-up-circle"></i> Gastos</a>
                 <a class="nav-link-custom" href="/financas/cartoes/"><i class="bi bi-credit-card"></i> Cartões</a>
                 <a class="nav-link-custom" href="/financas/importar-fatura/"><i class="bi bi-file-earmark-pdf"></i> Importar</a>
                 <a class="nav-link-custom" href="/financas/projecao/"><i class="bi bi-graph-up-arrow"></i> Projeção</a>
+                <a class="nav-link-custom" href="/financas/relatorios/"><i class="bi bi-bar-chart"></i> Relatórios</a>
                 <a class="nav-link-custom" href="/financas/cofre/"><i class="bi bi-safe"></i> Cofre</a>
                 <a class="nav-link-custom" href="/financas/historico/"><i class="bi bi-archive"></i> Histórico</a>
                 <a class="nav-link-custom" href="/financas/meses/"><i class="bi bi-calendar3"></i> Meses</a>
                 <a class="nav-link-custom" href="/financas/categorias/"><i class="bi bi-tags"></i> Categorias</a>
                 <a class="nav-link-custom" href="/financas/pessoas/"><i class="bi bi-people"></i> Pessoas</a>
                 <a class="nav-link-custom" href="/financas/formas-pagamento/"><i class="bi bi-wallet"></i> Pagamentos</a>
-                <a class="nav-link-custom" href="/financas/relatorios/"><i class="bi bi-bar-chart"></i> Relatórios</a>
             </div>
 
             <!-- BOTÃO SAIR -->
