@@ -766,8 +766,12 @@ def dashboard(request):
 # ==========================================
 # IMPORTAÇÃO DE FATURA
 # ==========================================
+# IMPORTAÇÃO DE FATURA
+# ==========================================
+
 @login_required
 def importar_fatura(request):
+    # 1. SE FOR POST E TIVER DADOS DE CONFIRMAÇÃO (Salvar no banco)
     if request.method == 'POST' and 'salvar_importacao' in request.POST:
         mes_ativo_id = request.session.get('mes_ativo_id')
         if not mes_ativo_id:
@@ -838,7 +842,14 @@ def importar_fatura(request):
         messages.success(request, f'{salvos} transações importadas com sucesso!')
         return redirect('gasto_lista')
 
+    # 2. SE FOR POST (Ler o PDF)
     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
+        mes_ativo_id = request.session.get('mes_ativo_id')
+        if not mes_ativo_id:
+            messages.error(request, 'Nenhum mês ativo selecionado.')
+            return redirect('mes_lista')
+        mes_ativo = Mes.objects.get(id=mes_ativo_id)
+
         pdf_file = request.FILES.get('arquivo_pdf')
         transacoes = []
         
@@ -846,32 +857,49 @@ def importar_fatura(request):
             with pdfplumber.open(pdf_file) as pdf:
                 for page in pdf.pages:
                     texto = page.extract_text()
-                    if not texto or ("TRANSACÕES" not in texto and "TRANSAÇÕES" not in texto):
+                    if not texto:
                         continue
                         
                     linhas = texto.split('\n')
                     for linha in linhas:
-                        match = re.match(r'^(\d{2}\s[A-Z]{3})\s+(.*?)\s+R\$\s*([\d\.]+,\d{2})', linha)
+                        # Regex CIRÚRGICO:
+                        # 1. Procura no início da linha a data (ex: 26 SET)
+                        # 2. Permite que existam 4 a 6 números (ex: 9970) e os pula
+                        # 3. Captura o nome (que pode ter espaços)
+                        # 4. Exige o R$ e o valor com vírgula e duas casas decimais no final.
+                        match = re.match(r'^(\d{2}\s[A-Z]{3})\s*(?:\d{4,6})?\s*(.*?)\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})', linha)
+                        
                         if match:
                             data_str = match.group(1)
                             descricao = match.group(2).strip()
                             valor_str = match.group(3)
                             
-                            if "Pagamento" in descricao:
+                            # Ignora lixos
+                            # Ignora APENAS as linhas de pagamento de fatura e totais
+                            if descricao.startswith("Pagamento em") or "Total a pagar" in descricao or "Fatura anterior" in descricao:
                                 continue
                             
                             valor_limpo = valor_str.replace('.', '').replace(',', '.')
                             valor = Decimal(valor_limpo)
                             
-                            meses = {'JAN':1, 'FEV':2, 'MAR':3, 'ABR':4, 'MAI':5, 'JUN':6, 'JUL':7, 'AGO':8, 'SET':9, 'OUT':10, 'NOV':11, 'DEZ':12}
+                            meses = {'JAN':1, 'FEV':2, 'MAR':3, 'ABR':4, 'MAI':5, 'JUN':6, 
+                                     'JUL':7, 'AGO':8, 'SET':9, 'OUT':10, 'NOV':11, 'DEZ':12}
                             dia, mes_abrev = data_str.split()
                             mes = meses.get(mes_abrev, 1)
                             ano = datetime.now().year
+                            
+                            # Se a compra foi em um mês maior que a fatura, foi no ano passado
+                            if mes > mes_ativo.mes:
+                                ano = ano - 1
+                                
                             data_gasto = date(ano, mes, int(dia))
+                            
+                            # Limpa sujeira
+                            descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
                             
                             transacoes.append({
                                 'data': data_gasto.isoformat(),
-                                'descricao': descricao,
+                                'descricao': descricao_limpa,
                                 'valor': str(valor)
                             })
         except Exception as e:
@@ -894,6 +922,270 @@ def importar_fatura(request):
         })
 
     return render(request, 'financas/importar_fatura.html')
+# @login_required
+# def importar_fatura(request):
+#     if request.method == 'POST' and 'salvar_importacao' in request.POST:
+#         mes_ativo_id = request.session.get('mes_ativo_id')
+#         if not mes_ativo_id:
+#             messages.error(request, 'Nenhum mês ativo selecionado.')
+#             return redirect('mes_lista')
+
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#         categoria_id = request.POST.get('categoria')
+#         pessoa_id = request.POST.get('pessoa')
+#         cartao_id = request.POST.get('cartao')
+        
+#         datas = request.POST.getlist('data[]')
+#         descricoes = request.POST.getlist('descricao[]')
+#         valores = request.POST.getlist('valor[]')
+
+#         if not (categoria_id and pessoa_id and cartao_id and datas):
+#             messages.error(request, 'Preencha todos os campos e selecione pelo menos um gasto.')
+#             return redirect('importar_fatura')
+
+#         categoria = Categoria.objects.get(id=categoria_id)
+#         pessoa = Pessoa.objects.get(id=pessoa_id)
+#         cartao = Cartao.objects.get(id=cartao_id)
+        
+#         forma_credito, _ = FormaPagamento.objects.get_or_create(nome="Cartão de Crédito")
+#         salvos = 0
+        
+#         for i in range(len(datas)):
+#             descricao_original = descricoes[i]
+#             descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao_original).strip()
+            
+#             valor = Decimal(str(valores[i]))
+#             data_gasto = datetime.strptime(datas[i], '%Y-%m-%d').date()
+            
+#             match_parcela = re.search(r'Parcela (\d+)/(\d+)', descricao_limpa)
+            
+#             if match_parcela:
+#                 parcela_atual = int(match_parcela.group(1))
+#                 total_parcelas = int(match_parcela.group(2))
+#                 parcelas_restantes = total_parcelas - parcela_atual
+                
+#                 Gasto.objects.create(
+#                     mes=mes_ativo, descricao=descricao_limpa, valor=valor, data=data_gasto,
+#                     categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                 )
+                
+#                 for j in range(1, parcelas_restantes + 1):
+#                     nova_data = data_gasto + relativedelta(months=j)
+#                     mes_futuro = mes_ativo.mes + j
+#                     ano_futuro = mes_ativo.ano
+#                     if mes_futuro > 12:
+#                         mes_futuro -= 12
+#                         ano_futuro += 1
+                        
+#                     novo_mes, _ = Mes.objects.get_or_create(ano=ano_futuro, mes=mes_futuro)
+#                     nova_descricao = re.sub(r'Parcela \d+/\d+', f'Parcela {parcela_atual + j}/{total_parcelas}', descricao_limpa)
+                    
+#                     Gasto.objects.create(
+#                         mes=novo_mes, descricao=nova_descricao, valor=valor, data=nova_data,
+#                         categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                     )
+#             else:
+#                 Gasto.objects.create(
+#                     mes=mes_ativo, descricao=descricao_limpa, valor=valor, data=data_gasto,
+#                     categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                 )
+#             salvos += 1
+            
+#         messages.success(request, f'{salvos} transações importadas com sucesso!')
+#         return redirect('gasto_lista')
+
+#     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
+#         pdf_file = request.FILES.get('arquivo_pdf')
+#         transacoes = []
+        
+#         try:
+#             with pdfplumber.open(pdf_file) as pdf:
+#                 for page in pdf.pages:
+#                     texto = page.extract_text()
+#                     if not texto or ("TRANSACÕES" not in texto and "TRANSAÇÕES" not in texto):
+#                         continue
+                        
+#                     linhas = texto.split('\n')
+#                     for linha in linhas:
+#                         # MÁGICA AQUI: O Regex ignora os números estranhos (9970, 0230) entre a data e o nome
+#                         match = re.match(r'^(\d{2}\s[A-Z]{3})\s*(?:\d{4,6})?\s*(.*?)\s+R\$\s*([\d\.]+,\d{2})', linha)
+                        
+#                         if match:
+#                             data_str = match.group(1)
+#                             descricao = match.group(2).strip()
+#                             valor_str = match.group(3)
+                            
+#                             # Ignora a linha de pagamento
+#                             if "Pagamento" in descricao:
+#                                 continue
+                            
+#                             valor_limpo = valor_str.replace('.', '').replace(',', '.')
+#                             valor = Decimal(valor_limpo)
+                            
+#                             meses = {'JAN':1, 'FEV':2, 'MAR':3, 'ABR':4, 'MAI':5, 'JUN':6, 'JUL':7, 'AGO':8, 'SET':9, 'OUT':10, 'NOV':11, 'DEZ':12}
+#                             dia, mes_abrev = data_str.split()
+#                             mes = meses.get(mes_abrev, 1)
+#                             ano = datetime.now().year
+#                             data_gasto = date(ano, mes, int(dia))
+                            
+#                             # Limpa qualquer sujeira que tenha sobrado no começo da descrição
+#                             descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
+                            
+#                             transacoes.append({
+#                                 'data': data_gasto.isoformat(),
+#                                 'descricao': descricao_limpa,
+#                                 'valor': str(valor)
+#                             })
+#         except Exception as e:
+#             messages.error(request, f'Erro ao ler PDF: {e}')
+#             return redirect('importar_fatura')
+
+#         if not transacoes:
+#             messages.warning(request, 'Nenhuma transação válida encontrada no PDF.')
+
+#         categorias = Categoria.objects.filter(ativo=True)
+#         pessoas = Pessoa.objects.filter(ativo=True)
+#         cartoes = Cartao.objects.filter(ativo=True)
+
+#         return render(request, 'financas/importar_fatura.html', {
+#             'transacoes': transacoes,
+#             'total': sum(Decimal(t['valor']) for t in transacoes),
+#             'categorias': categorias,
+#             'pessoas': pessoas,
+#             'cartoes': cartoes,
+#         })
+
+#     return render(request, 'financas/importar_fatura.html')
+
+# ==========================================
+# @login_required
+# def importar_fatura(request):
+#     if request.method == 'POST' and 'salvar_importacao' in request.POST:
+#         mes_ativo_id = request.session.get('mes_ativo_id')
+#         if not mes_ativo_id:
+#             messages.error(request, 'Nenhum mês ativo selecionado.')
+#             return redirect('mes_lista')
+
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#         categoria_id = request.POST.get('categoria')
+#         pessoa_id = request.POST.get('pessoa')
+#         cartao_id = request.POST.get('cartao')
+        
+#         datas = request.POST.getlist('data[]')
+#         descricoes = request.POST.getlist('descricao[]')
+#         valores = request.POST.getlist('valor[]')
+
+#         if not (categoria_id and pessoa_id and cartao_id and datas):
+#             messages.error(request, 'Preencha todos os campos e selecione pelo menos um gasto.')
+#             return redirect('importar_fatura')
+
+#         categoria = Categoria.objects.get(id=categoria_id)
+#         pessoa = Pessoa.objects.get(id=pessoa_id)
+#         cartao = Cartao.objects.get(id=cartao_id)
+        
+#         forma_credito, _ = FormaPagamento.objects.get_or_create(nome="Cartão de Crédito")
+#         salvos = 0
+        
+#         for i in range(len(datas)):
+#             descricao_original = descricoes[i]
+#             descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao_original).strip()
+            
+#             valor = Decimal(str(valores[i]))
+#             data_gasto = datetime.strptime(datas[i], '%Y-%m-%d').date()
+            
+#             match_parcela = re.search(r'Parcela (\d+)/(\d+)', descricao_limpa)
+            
+#             if match_parcela:
+#                 parcela_atual = int(match_parcela.group(1))
+#                 total_parcelas = int(match_parcela.group(2))
+#                 parcelas_restantes = total_parcelas - parcela_atual
+                
+#                 Gasto.objects.create(
+#                     mes=mes_ativo, descricao=descricao_limpa, valor=valor, data=data_gasto,
+#                     categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                 )
+                
+#                 for j in range(1, parcelas_restantes + 1):
+#                     nova_data = data_gasto + relativedelta(months=j)
+#                     mes_futuro = mes_ativo.mes + j
+#                     ano_futuro = mes_ativo.ano
+#                     if mes_futuro > 12:
+#                         mes_futuro -= 12
+#                         ano_futuro += 1
+                        
+#                     novo_mes, _ = Mes.objects.get_or_create(ano=ano_futuro, mes=mes_futuro)
+#                     nova_descricao = re.sub(r'Parcela \d+/\d+', f'Parcela {parcela_atual + j}/{total_parcelas}', descricao_limpa)
+                    
+#                     Gasto.objects.create(
+#                         mes=novo_mes, descricao=nova_descricao, valor=valor, data=nova_data,
+#                         categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                     )
+#             else:
+#                 Gasto.objects.create(
+#                     mes=mes_ativo, descricao=descricao_limpa, valor=valor, data=data_gasto,
+#                     categoria=categoria, pessoa=pessoa, forma_pagamento=forma_credito, cartao=cartao,
+#                 )
+#             salvos += 1
+            
+#         messages.success(request, f'{salvos} transações importadas com sucesso!')
+#         return redirect('gasto_lista')
+
+#     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
+#         pdf_file = request.FILES.get('arquivo_pdf')
+#         transacoes = []
+        
+#         try:
+#             with pdfplumber.open(pdf_file) as pdf:
+#                 for page in pdf.pages:
+#                     texto = page.extract_text()
+#                     if not texto or ("TRANSACÕES" not in texto and "TRANSAÇÕES" not in texto):
+#                         continue
+                        
+#                     linhas = texto.split('\n')
+#                     for linha in linhas:
+#                         match = re.match(r'^(\d{2}\s[A-Z]{3})\s+(.*?)\s+R\$\s*([\d\.]+,\d{2})', linha)
+#                         if match:
+#                             data_str = match.group(1)
+#                             descricao = match.group(2).strip()
+#                             valor_str = match.group(3)
+                            
+#                             if "Pagamento" in descricao:
+#                                 continue
+                            
+#                             valor_limpo = valor_str.replace('.', '').replace(',', '.')
+#                             valor = Decimal(valor_limpo)
+                            
+#                             meses = {'JAN':1, 'FEV':2, 'MAR':3, 'ABR':4, 'MAI':5, 'JUN':6, 'JUL':7, 'AGO':8, 'SET':9, 'OUT':10, 'NOV':11, 'DEZ':12}
+#                             dia, mes_abrev = data_str.split()
+#                             mes = meses.get(mes_abrev, 1)
+#                             ano = datetime.now().year
+#                             data_gasto = date(ano, mes, int(dia))
+                            
+#                             transacoes.append({
+#                                 'data': data_gasto.isoformat(),
+#                                 'descricao': descricao,
+#                                 'valor': str(valor)
+#                             })
+#         except Exception as e:
+#             messages.error(request, f'Erro ao ler PDF: {e}')
+#             return redirect('importar_fatura')
+
+#         if not transacoes:
+#             messages.warning(request, 'Nenhuma transação válida encontrada no PDF.')
+
+#         categorias = Categoria.objects.filter(ativo=True)
+#         pessoas = Pessoa.objects.filter(ativo=True)
+#         cartoes = Cartao.objects.filter(ativo=True)
+
+#         return render(request, 'financas/importar_fatura.html', {
+#             'transacoes': transacoes,
+#             'total': sum(Decimal(t['valor']) for t in transacoes),
+#             'categorias': categorias,
+#             'pessoas': pessoas,
+#             'cartoes': cartoes,
+#         })
+
+#     return render(request, 'financas/importar_fatura.html')
 
 # ==========================================
 # PROJEÇÃO 12 MESES
