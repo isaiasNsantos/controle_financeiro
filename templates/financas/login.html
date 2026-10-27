@@ -7,12 +7,23 @@
     <title>Login - Meu Financeiro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
     <style>
-        /* Reset básico para ocupar a tela toda sem scroll */
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+
+        :root {
+            --bg-color: #fcf9f5;
+            --line-color: #e5dcd0;
+            --mint-green: #b4e3d3;
+            --purple: #d1b3e2;
+            --border-dark: #222222;
+        }
+
         body, html {
             height: 100%;
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Patrick Hand', cursive, sans-serif;
+            background-color: var(--bg-color);
         }
 
         .login-wrapper {
@@ -21,62 +32,64 @@
             width: 100vw;
         }
 
-        /* LADO ESQUERDO - ARTE E LOGO */
+        /* LADO ESQUERDO - CAPA DO CADERNO */
         .login-left {
             flex: 1;
-            background: linear-gradient(135deg, #1e1b4b 0%, #8b5cf6 100%);
+            background-color: var(--purple);
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% 28px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
             padding: 3rem;
             text-align: center;
             position: relative;
-            overflow: hidden;
+            border-right: 4px solid var(--border-dark);
         }
 
-        /* Efeito de círculos abstratos no fundo */
+        /* Efeito de fita adesiva no topo da capa */
         .login-left::before {
             content: '';
             position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 300px;
-            height: 300px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-        .login-left::after {
-            content: '';
-            position: absolute;
-            bottom: -10%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 150px;
+            height: 35px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
         .brand-logo {
-            font-size: 3rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            z-index: 1;
+            font-family: 'Architects Daughter', cursive;
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--border-dark);
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.15);
             margin-bottom: 1rem;
+            z-index: 1;
+            line-height: 1.1;
         }
 
         .brand-subtitle {
-            font-size: 1.1rem;
-            color: rgba(255,255,255,0.8);
+            font-size: 1.3rem;
+            color: #444;
             z-index: 1;
             max-width: 400px;
+            background-color: rgba(255,255,255,0.6);
+            padding: 10px;
+            border: 2px dashed var(--border-dark);
+            border-radius: 4px;
+            transform: rotate(-1deg);
         }
 
         /* LADO DIREITO - FORMULÁRIO */
         .login-right {
             flex: 1;
-            background-color: #f8fafc;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-size: 100% 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -88,44 +101,76 @@
             max-width: 400px;
             background: white;
             padding: 3rem 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 3px solid var(--border-dark);
+            box-shadow: 8px 8px 0px var(--border-dark);
+            border-radius: 4px;
+            position: relative;
+        }
+
+        /* Fita adesiva no formulário */
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            transform: rotate(5deg);
+            width: 80px;
+            height: 30px;
+            background-color: rgba(180, 227, 211, 0.8); /* Verde pastel */
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .form-title {
+            font-family: 'Architects Daughter', cursive;
+            font-size: 2rem;
+            color: var(--border-dark);
+            margin-bottom: 0.5rem;
         }
 
         .form-control {
-            border-radius: 8px;
-            padding: 0.8rem 1rem;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
+            border: 2px solid var(--border-dark) !important;
+            border-radius: 4px !important;
+            background-color: #fcf9f5 !important;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            padding: 0.6rem 0.8rem;
         }
 
         .form-control:focus {
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
-            border-color: #8b5cf6;
+            box-shadow: 3px 3px 0px rgba(139, 92, 246, 0.3) !important;
+            border-color: #8b5cf6 !important;
+            background-color: #fff !important;
         }
 
         .input-group-text {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background-color: var(--mint-green);
+            border: 2px solid var(--border-dark);
             border-right: none;
-            color: #64748b;
+            color: var(--border-dark);
+            font-size: 1.1rem;
         }
 
         .btn-login {
-            background: #8b5cf6;
-            border: none;
-            border-radius: 8px;
+            background: var(--mint-green);
+            border: 2px solid var(--border-dark);
+            border-radius: 4px;
+            color: var(--border-dark);
             padding: 0.8rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: bold;
+            font-family: 'Architects Daughter', cursive;
+            font-size: 1.2rem;
+            box-shadow: 4px 4px 0px var(--border-dark);
+            transition: all 0.1s;
         }
 
         .btn-login:hover {
-            background: #7c3aed;
-            transform: translateY(-2px);
+            background: #81c7b3;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px var(--border-dark);
         }
 
-        /* Responsividade: esconde o lado esquerdo no celular */
+        /* Responsividade */
         @media (max-width: 768px) {
             .login-left {
                 display: none;
@@ -136,26 +181,26 @@
 <body>
 
     <div class="login-wrapper">
-        <!-- LADO ESQUERDO -->
+        <!-- LADO ESQUERDO (CAPA) -->
         <div class="login-left d-none d-md-flex">
             <div class="brand-logo">
-                Meu Financeiro
+                Meu<br>Financeiro
             </div>
             <div class="brand-subtitle">
-                Controle seus gastos, projete o futuro e conquiste seus objetivos com clareza e segurança.
+                Anote, planeje e conquiste seus objetivos.
             </div>
         </div>
 
-        <!-- LADO DIREITO -->
+        <!-- LADO DIREITO (FORMULÁRIO) -->
         <div class="login-right">
             <div class="form-container">
                 <div class="mb-4">
-                    <h3 class="fw-bold" style="color: #1e1b4b;">Acesse sua conta</h3>
-                    <p class="text-muted small">Bem-vindo de volta! Insira suas credenciais.</p>
+                    <div class="form-title">Acesse seu Caderno</div>
+                    <p class="text-muted small" style="font-size: 1rem;">Insira suas credenciais para continuar.</p>
                 </div>
 
                 {% if form.errors %}
-                    <div class="alert alert-danger py-2 text-center small fw-bold border-0" style="background-color: #fee2e2; color: #b91c1c;">
+                    <div class="alert alert-danger py-2 text-center fw-bold" style="border: 2px solid #222; background-color: #f7b2bd; color: #222;">
                         <i class="bi bi-exclamation-triangle"></i> Usuário ou senha incorretos.
                     </div>
                 {% endif %}
@@ -164,7 +209,7 @@
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.75rem;">Usuário</label>
+                        <label class="form-label fw-bold text-dark">Usuário</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
                             <input type="text" name="username" class="form-control" placeholder="Seu usuário" required autofocus>
@@ -172,15 +217,15 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.75rem;">Senha</label>
+                        <label class="form-label fw-bold text-dark">Senha</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
                             <input type="password" name="password" class="form-control" placeholder="Sua senha" required>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-login w-100 text-white shadow-sm">
-                        Entrar
+                    <button type="submit" class="btn btn-login w-100">
+                        Entrar <i class="bi bi-box-arrow-in-right"></i>
                     </button>
                     
                     <input type="hidden" name="next" value="{{ next }}">
