@@ -20,6 +20,9 @@
 
 # # Application definition
 
+
+
+
 # INSTALLED_APPS = [
 #     'django.contrib.admin',
 #     'django.contrib.auth',
@@ -146,6 +149,9 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Se a variável de ambiente existir, ele usa. Se não, usa o padrão local.
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1, localhost').split(',')
+
+# ADICIONE ESTA LINHA:
+CSRF_TRUSTED_ORIGINS = ['https://isaiasns.pythonanywhere.com']
 
 
 # Application definition
