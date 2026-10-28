@@ -140,9 +140,22 @@ class Receita(models.Model):
 # ... (Pessoa, Categoria, FormaPagamento, Mes e Receita lá em cima)
 
 # 1. PRIMEIRO O CARTÃO
+# class Cartao(models.Model):
+#     nome = models.CharField(max_length=50)
+#     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+#     ativo = models.BooleanField(default=True)
+
+#     class Meta:
+#         verbose_name = "Cartão"
+#         verbose_name_plural = "Cartões"
+#         ordering = ['nome']
+
+#     def __str__(self):
+#         return self.nome
 class Cartao(models.Model):
     nome = models.CharField(max_length=50)
     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    dia_vencimento = models.IntegerField(null=True, blank=True, help_text="Dia do mês que a fatura vence (ex: 3)")
     ativo = models.BooleanField(default=True)
 
     class Meta:

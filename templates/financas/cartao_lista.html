@@ -26,6 +26,7 @@
                         {% csrf_token %}
                         <div class="mb-2"><label class="form-label fw-bold">Nome</label>{{ form.nome }}</div>
                         <div class="mb-2"><label class="form-label fw-bold">Limite (R$)</label>{{ form.limite }}</div>
+                        <div class="mb-2"><label class="form-label fw-bold">Dia de Vencimento</label>{{ form.dia_vencimento }}</div>
                         <div class="mb-3 form-check">{{ form.ativo }}<label class="form-check-label">Ativo</label></div>
                         <button type="submit" class="btn btn-journal w-100">Salvar</button>
                     </form>
@@ -38,12 +39,20 @@
                     {% if cartoes %}
                         <div class="table-responsive">
                             <table class="table table-hover table-journal align-middle mb-0">
-                                <thead><tr><th>Nome</th><th>Limite</th><th>Ações</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Limite</th>
+                                        <th>Vencimento</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {% for cartao in cartoes %}
                                         <tr>
                                             <td class="fw-bold">{{ cartao.nome }}</td>
                                             <td>{% if cartao.limite %}R$ {{ cartao.limite }}{% else %}-{% endif %}</td>
+                                            <td>{% if cartao.dia_vencimento %}Dia {{ cartao.dia_vencimento }}{% else %}-{% endif %}</td>
                                             <td>
                                                 <a href="{% url 'cartao_editar' cartao.id %}" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.8rem;">✏️</a>
                                                 <form method="post" action="{% url 'cartao_excluir' cartao.id %}" class="d-inline" onsubmit="return confirm('Excluir?');">

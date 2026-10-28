@@ -8,32 +8,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
         .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
         
-        /* --- CARTÃO DE CRÉDITO (TAMANHO FIXO) --- */
-        .card-fatura {
-            color: #222;
-            border: 2px solid #222;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 4px 4px 0px #222;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.1s;
-            max-width: 280px; /* LIMITA A LARGURA DO CARD */
-            width: 100%;
-        }
+        /* CARTÃO DE CRÉDITO */
+        .card-fatura { color: #222; border: 2px solid #222; border-radius: 8px; padding: 15px; box-shadow: 4px 4px 0px #222; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; transition: transform 0.1s; max-width: 280px; width: 100%; }
         .card-fatura:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px #222; }
-
-        .card-fatura::after {
-            content: '';
-            position: absolute;
-            top: -20px; right: -20px;
-            width: 100px; height: 100px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 50%;
-        }
+        .card-fatura::after { content: ''; position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.3); border-radius: 50%; }
 
         /* CORES DOS BANCOS */
         .bg-nubank { background: linear-gradient(135deg, #e9d5ff, #d8b4fe); }
@@ -41,31 +19,27 @@
         .bg-santander { background: linear-gradient(135deg, #fecaca, #fca5a5); }
         .bg-cartao-padrao { background: linear-gradient(135deg, #bfdbfe, #93c5fd); }
 
-        /* TEXTOS DO CARTÃO */
         .card-fatura .nome-cartao { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #444; margin-bottom: 5px; }
         .card-fatura .valor-fatura { font-size: 1.4rem; font-weight: bold; font-family: 'Segoe UI', sans-serif; margin-bottom: 2px; color: #111; }
         .card-fatura .vencimento { font-size: 0.75rem; color: #555; margin-bottom: 10px; font-weight: bold;}
-        
-        .btn-fatura {
-            background: rgba(255, 255, 255, 0.7); color: #111; border: 2px solid #222;
-            border-radius: 4px; padding: 5px; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.75rem; transition: 0.2s;
-            box-shadow: 2px 2px 0px #222;
-        }
+        .btn-fatura { background: rgba(255, 255, 255, 0.7); color: #111; border: 2px solid #222; border-radius: 4px; padding: 5px; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.75rem; transition: 0.2s; box-shadow: 2px 2px 0px #222; }
         .btn-fatura:hover { background: white; color: #111; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222;}
 
         /* CONTAS NORMAIS */
-        .card-vencimento {
-            background-color: #a8c8f0; color: #222; border: 2px solid #222; border-radius: 6px;
-            padding: 15px; box-shadow: 4px 4px 0px #222; height: 100%;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
+        .card-vencimento { background-color: #a8c8f0; color: #222; border: 2px solid #222; border-radius: 6px; padding: 15px; box-shadow: 4px 4px 0px #222; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .card-vencimento .label { font-size: 0.65rem; text-transform: uppercase; font-weight: bold; color: #475569; }
         .card-vencimento .valor { font-size: 1.2rem; font-weight: bold; font-family: 'Patrick Hand', cursive; margin-bottom: 5px;}
         .card-vencimento .desc { font-size: 0.85rem; color: #333; margin-bottom: 10px; }
         .btn-card { background: white; color: #222; border: 2px solid #222; border-radius: 4px; padding: 5px; text-align: center; text-decoration: none; font-weight: bold; font-size: 0.75rem; box-shadow: 2px 2px 0px #222; display: block; }
 
-        /* ALERTA */
+        /* ALERTA E BOTÕES DE NAVEGAÇÃO */
         .alerta-atraso { background-color: #f7b2bd; border: 2px solid #222; border-radius: 6px; padding: 12px 15px; margin-bottom: 20px; box-shadow: 4px 4px 0px #222; display: flex; justify-content: space-between; align-items: center; }
+        .btn-nav { background-color: white; color: #222; border: 2px solid #222; border-radius: 4px; padding: 4px 10px; font-weight: bold; text-decoration: none; box-shadow: 2px 2px 0px #222; transition: 0.1s; font-size: 0.9rem;}
+        .btn-nav:hover { background-color: #f1f5f9; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222; color: #222;}
+
+        /* BOTÃO NOVO GASTO */
+        .btn-novo-gasto { background-color: #f7b2bd; color: #222; border: 2px solid #222; border-radius: 4px; padding: 6px 15px; font-weight: bold; text-decoration: none; box-shadow: 2px 2px 0px #222; transition: 0.1s; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px;}
+        .btn-novo-gasto:hover { background-color: #f28a9a; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222; color: #222;}
 
         /* CALENDÁRIO MINI */
         .calendario-wrapper { background-color: white; padding: 15px; border: 2px solid #222; border-radius: 6px; box-shadow: 6px 6px 0px #222; }
@@ -84,28 +58,89 @@
 
     <div class="journal-bg">
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- CABEÇALHO COM NAVEGAÇÃO E BOTÃO -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-2">
             <h3 style="font-family: 'Architects Daughter'; margin: 0;">Agenda de Contas</h3>
-            <span class="badge" style="background: #d1b3e2; color: #222; border: 2px solid #222; font-size: 1rem; padding: 8px 12px;">
-                <i class="bi bi-calendar3"></i> {{ mes_ativo }}
-            </span>
+            
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="?ano={{ ano_anterior }}&mes={{ mes_anterior }}" class="btn-nav"><i class="bi bi-chevron-left"></i> Anterior</a>
+                <span class="badge" style="background: #d1b3e2; color: #222; border: 2px solid #222; font-size: 1rem; padding: 8px 12px;">
+                    <i class="bi bi-calendar3"></i> {{ mes_ativo }}
+                </span>
+                <a href="?ano={{ ano_posterior }}&mes={{ mes_posterior }}" class="btn-nav">Próximo <i class="bi bi-chevron-right"></i></a>
+                
+                <!-- BOTÃO NOVO GASTO -->
+                <button class="btn-novo-gasto ms-md-3" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoGastoHome">
+                    <i class="bi bi-plus-circle"></i> Novo Gasto
+                </button>
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO ESCONDIDO -->
+        <div class="collapse mb-4" id="formNovoGastoHome">
+            <div class="card card-journal p-4 border-top border-4" style="border-top-color: #f7b2bd !important;">
+                <h6 class="fw-bold text-vermelho mb-3"><i class="bi bi-pencil-square"></i> Lançar Novo Gasto</h6>
+                <form method="post" action="{% url 'gasto_criar' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Descrição</label>
+                            {{ form_gasto.descricao }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Valor Total</label>
+                            {{ form_gasto.valor }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Parc. Atual</label>
+                            {{ form_gasto.parcela_atual }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Total Parc.</label>
+                            {{ form_gasto.total_parcelas }}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Data</label>
+                            {{ form_gasto.data }}
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Categoria</label>
+                            {{ form_gasto.categoria }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Pessoa</label>
+                            {{ form_gasto.pessoa }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Pagamento</label>
+                            {{ form_gasto.forma_pagamento }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Cartão</label>
+                            {{ form_gasto.cartao }}
+                        </div>
+                        
+                        <div class="col-12 text-end mt-3">
+                            <button type="submit" class="btn btn-journal" style="background:#f7b2bd;">Salvar Gasto</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
 
         {% if atrasadas %}
             <div class="alerta-atraso">
-                <div><strong><i class="bi bi-exclamation-triangle"></i> Você tem {{ atrasadas|length }} conta(s) atrasada(s).</strong></div>
+                <div><strong><i class="bi bi-exclamation-triangle"></i> Você tem {{ atrasadas|length }} conta(s) atrasada(s) neste mês.</strong></div>
                 <div class="fw-bold fs-5">R$ {{ total_atrasado|moeda }}</div>
             </div>
         {% endif %}
 
         <!-- 1. BLOCO DE CARTÕES (FATURAS) -->
         {% if cartoes_resumo %}
-            <h4 style="font-family: 'Architects Daughter'; margin-bottom: 15px;">Faturas de Cartão</h4>
-            
-            <!-- Aqui está o segredo: usei 'd-flex' em vez de 'row'. Assim os cards ficam do tamanho deles, não esticam -->
+            <h4 style="font-family: 'Architects Daughter'; margin-bottom: 15px;">Faturas de Cartão (Vencimento neste mês)</h4>
             <div class="d-flex flex-wrap gap-3 mb-5">
                 {% for c in cartoes_resumo %}
-                    
                     <div class="card-fatura 
                         {% if 'nubank' in c.cartao.nome|lower %}bg-nubank
                         {% elif 'itau' in c.cartao.nome|lower or 'itaú' in c.cartao.nome|lower %}bg-itau
@@ -117,11 +152,8 @@
                             <div class="valor-fatura">R$ {{ c.total|moeda }}</div>
                             <div class="vencimento">Vence aprox. {{ c.vencimento|date:"d/m" }}</div>
                         </div>
-                        <a href="{% url 'gasto_lista' %}" class="btn-fatura mt-1">
-                            Ver Fatura
-                        </a>
+                        <a href="{% url 'gasto_lista' %}" class="btn-fatura mt-1">Ver Fatura</a>
                     </div>
-                    
                 {% endfor %}
             </div>
         {% endif %}
@@ -143,9 +175,7 @@
                                         {{ g.descricao }}
                                     </div>
                                 </div>
-                                <a href="{% url 'gasto_lista' %}" class="btn-card mt-1">
-                                    Ver Gastos
-                                </a>
+                                <a href="{% url 'gasto_lista' %}" class="btn-card mt-1">Ver Gastos</a>
                             </div>
                         </div>
                     {% empty %}

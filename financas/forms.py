@@ -285,10 +285,11 @@ class GastoForm(forms.ModelForm):
 class CartaoForm(forms.ModelForm):
     class Meta:
         model = Cartao
-        fields = ['nome', 'limite', 'ativo']
+        fields = ['nome', 'limite', 'dia_vencimento', 'ativo'] # O 'dia_vencimento' tem que estar aqui!
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Nubank Isaias'}),
             'limite': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'dia_vencimento': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '31', 'placeholder': 'Ex: 3'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

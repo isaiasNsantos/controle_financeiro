@@ -255,7 +255,7 @@ MAILERS = {
 
 # --- CONFIGURAÇÕES DE LOGIN ---
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'financas_home'
 LOGOUT_REDIRECT_URL = 'login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
