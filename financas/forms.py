@@ -1,96 +1,3 @@
-# from django import forms
-# from .models import Pessoa, Categoria, FormaPagamento, Mes, Receita, Gasto
-
-
-
-# MESES_CHOICES = [
-#     (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), (4, 'Abril'),
-#     (5, 'Maio'), (6, 'Junho'), (7, 'Julho'), (8, 'Agosto'),
-#     (9, 'Setembro'), (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro'),
-# ]
-
-
-# class PessoaForm(forms.ModelForm):
-#     class Meta:
-#         model = Pessoa
-#         fields = ['nome', 'ativo']
-#         widgets = {
-#             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome da pessoa'}),
-#             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#         }
-
-
-# class CategoriaForm(forms.ModelForm):
-#     class Meta:
-#         model = Categoria
-#         fields = ['nome', 'tipo', 'limite_mensal', 'ativo']
-#         widgets = {
-#             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Mercado, Luz, Lazer'}),
-#             'tipo': forms.Select(attrs={'class': 'form-select'}),
-#             'limite_mensal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Deixe vazio se não tiver limite'}),
-#             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#         }
-
-
-# class FormaPagamentoForm(forms.ModelForm):
-#     class Meta:
-#         model = FormaPagamento
-#         fields = ['nome', 'ativo']
-#         widgets = {
-#             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Pix, Débito, Dinheiro'}),
-#             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-#         }
-
-
-# class MesForm(forms.ModelForm):
-#     mes = forms.ChoiceField(choices=MESES_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
-
-#     class Meta:
-#         model = Mes
-#         fields = ['ano', 'mes']
-#         widgets = {
-#             'ano': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 2026'}),
-#         }
-
-# class ReceitaForm(forms.ModelForm):
-#     class Meta:
-#         model = Receita
-#         fields = ['descricao', 'valor', 'data', 'pessoa']
-#         widgets = {
-#             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Salário, Freela, Venda'}),
-#             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
-#             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             'pessoa': forms.Select(attrs={'class': 'form-select'}),
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         from datetime import date
-#         if not self.instance.pk:
-#             self.fields['data'].initial = date.today()
-
-# class GastoForm(forms.ModelForm):
-#     class Meta:
-#         model = Gasto
-#         fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento']
-#         widgets = {
-#             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Compra do mês, Luz, Farmácia'}),
-#             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
-#             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             'categoria': forms.Select(attrs={'class': 'form-select'}),
-#             'pessoa': forms.Select(attrs={'class': 'form-select'}),
-#             'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         from datetime import date
-#         if not self.instance.pk:
-#             self.fields['data'].initial = date.today()
-#         self.fields['categoria'].queryset = Categoria.objects.filter(ativo=True)
-#         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
-#         self.fields['forma_pagamento'].queryset = FormaPagamento.objects.filter(ativo=True)
-
 from django import forms
 from .models import Pessoa, Categoria, FormaPagamento, Mes, Receita, Gasto, Cartao, Divida, ReservaEmergencia
 from datetime import date
@@ -158,7 +65,6 @@ class ReceitaForm(forms.ModelForm):
         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
 
 class GastoForm(forms.ModelForm):
-    # Novos campos para o parcelamento inteligente
     parcela_atual = forms.IntegerField(
         required=False, min_value=1, initial=1, label="Parcela Atual",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
@@ -172,8 +78,8 @@ class GastoForm(forms.ModelForm):
         model = Gasto
         fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento', 'cartao']
         widgets = {
-            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Notebook, Geladeira'}),
-            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Valor TOTAL'}),
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Compra do mês, TV Nova'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Valor da Parcela / Total'}),
             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'pessoa': forms.Select(attrs={'class': 'form-select'}),
@@ -193,6 +99,43 @@ class GastoForm(forms.ModelForm):
         
         self.fields['cartao'].required = False
         self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
+
+# class GastoForm(forms.ModelForm):
+#     # Novos campos para o parcelamento inteligente
+#     parcela_atual = forms.IntegerField(
+#         required=False, min_value=1, initial=1, label="Parcela Atual",
+#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
+#     )
+#     total_parcelas = forms.IntegerField(
+#         required=False, min_value=1, initial=1, label="Total de Parcelas",
+#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
+#     )
+
+#     class Meta:
+#         model = Gasto
+#         fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento', 'cartao']
+#         widgets = {
+#             'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Notebook, Geladeira'}),
+#             'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Valor TOTAL'}),
+#             'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             'categoria': forms.Select(attrs={'class': 'form-select'}),
+#             'pessoa': forms.Select(attrs={'class': 'form-select'}),
+#             'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
+#             'cartao': forms.Select(attrs={'class': 'form-select'}),
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if not self.instance.pk:
+#             self.fields['data'].initial = date.today()
+        
+#         self.fields['categoria'].queryset = Categoria.objects.filter(ativo=True)
+#         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
+#         self.fields['forma_pagamento'].queryset = FormaPagamento.objects.filter(ativo=True)
+#         self.fields['cartao'].queryset = Cartao.objects.filter(ativo=True)
+        
+#         self.fields['cartao'].required = False
+#         self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
 
 # class GastoForm(forms.ModelForm):
 #     # Campo extra que NÃO existe no banco, só na tela
