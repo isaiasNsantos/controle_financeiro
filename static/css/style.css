@@ -1,13 +1,15 @@
 /* Reset básico */
 body {
     font-family: 'Patrick Hand', cursive, sans-serif;
+    background-color: #e8f0e8; /* Fundo verde sálvia */
+    color: #333;
 }
 
-/* Inputs estilo caneta */
+/* Inputs estilo caneta (brancos para contraste) */
 .form-control, .form-select {
     border: 2px solid #222 !important;
     border-radius: 4px !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
+    background-color: #ffffff !important; 
     font-family: 'Patrick Hand', cursive;
     font-size: 1rem;
     padding: 0.4rem 0.6rem;
@@ -16,8 +18,8 @@ body {
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #8b5cf6 !important;
-    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.2), 2px 2px 0px rgba(0,0,0,0.1) inset !important;
+    border-color: #81c7b3 !important; 
+    box-shadow: 0 0 0 0.2rem rgba(129, 199, 179, 0.2), 2px 2px 0px rgba(0,0,0,0.1) inset !important;
     background-color: #fff !important;
 }
 
@@ -30,10 +32,10 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] { -moz-appearance: textfield; }
 
 /* Arredondamento de botões e badges pra combinar */
-.card-resumo, .card-form { border-radius: 4px !important; }
+.card-resumo, .card-form, .card-journal { border-radius: 4px !important; background-color: #fff !important; }
 
 /* Scrollbar bonitinha */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-track { background: #e2e8f0; }
+::-webkit-scrollbar-thumb { background: #b4e3d3; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #81c7b3; }

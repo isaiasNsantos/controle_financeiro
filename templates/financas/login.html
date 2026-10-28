@@ -12,10 +12,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
 
         :root {
-            --bg-color: #fcf9f5;
-            --line-color: #e5dcd0;
+            --bg-color: #fcf9f5; /* Fundo do lado direito */
+            --line-color: #e5dcd0; /* Linhas do lado direito */
+            --dark-bg: #1a1a1a; /* Fundo escuro do lado esquerdo */
             --mint-green: #b4e3d3;
-            --purple: #d1b3e2;
+            --mint-green-dark: #81c7b3;
+            --yellow: #fce8a1; 
+            --yellow-dark: #f5d76e;
             --border-dark: #222222;
         }
 
@@ -23,7 +26,6 @@
             height: 100%;
             margin: 0;
             font-family: 'Patrick Hand', cursive, sans-serif;
-            background-color: var(--bg-color);
         }
 
         .login-wrapper {
@@ -32,11 +34,11 @@
             width: 100vw;
         }
 
-        /* LADO ESQUERDO - CAPA DO CADERNO */
+        /* LADO ESQUERDO - CAPA ESCURA COM DETALHES COLORIDOS */
         .login-left {
             flex: 1;
-            background-color: var(--purple);
-            background-image: linear-gradient(var(--line-color) 1px, transparent 1px);
+            background-color: var(--dark-bg);
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px); /* Linhas sutis */
             background-size: 100% 28px;
             display: flex;
             flex-direction: column;
@@ -48,7 +50,7 @@
             border-right: 4px solid var(--border-dark);
         }
 
-        /* Efeito de fita adesiva no topo da capa */
+        /* Fita adesiva verde no topo */
         .login-left::before {
             content: '';
             position: absolute;
@@ -57,16 +59,17 @@
             transform: translateX(-50%) rotate(-2deg);
             width: 150px;
             height: 35px;
-            background-color: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(0,0,0,0.1);
+            background-color: var(--mint-green);
+            border: 1px solid #222;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
         }
 
         .brand-logo {
             font-family: 'Architects Daughter', cursive;
             font-size: 3.5rem;
             font-weight: bold;
-            color: var(--border-dark);
-            text-shadow: 3px 3px 0px rgba(0,0,0,0.15);
+            color: #ffffff;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.5);
             margin-bottom: 1rem;
             z-index: 1;
             line-height: 1.1;
@@ -74,17 +77,17 @@
 
         .brand-subtitle {
             font-size: 1.3rem;
-            color: #444;
+            color: var(--yellow); /* Texto amarelo */
             z-index: 1;
             max-width: 400px;
-            background-color: rgba(255,255,255,0.6);
+            background-color: rgba(0,0,0,0.4);
             padding: 10px;
-            border: 2px dashed var(--border-dark);
+            border: 2px dashed var(--yellow); /* Borda amarela */
             border-radius: 4px;
             transform: rotate(-1deg);
         }
 
-        /* LADO DIREITO - FORMULÁRIO */
+        /* LADO DIREITO - FORMULÁRIO (CORES CLARAS) */
         .login-right {
             flex: 1;
             background-color: var(--bg-color);
@@ -107,7 +110,7 @@
             position: relative;
         }
 
-        /* Fita adesiva no formulário */
+        /* Fita adesiva amarela no formulário */
         .form-container::before {
             content: '';
             position: absolute;
@@ -116,9 +119,9 @@
             transform: rotate(5deg);
             width: 80px;
             height: 30px;
-            background-color: rgba(180, 227, 211, 0.8); /* Verde pastel */
-            border: 1px solid rgba(0,0,0,0.1);
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            background-color: var(--yellow); 
+            border: 1px solid #222;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
 
         .form-title {
@@ -131,15 +134,15 @@
         .form-control {
             border: 2px solid var(--border-dark) !important;
             border-radius: 4px !important;
-            background-color: #fcf9f5 !important;
+            background-color: #f8f9fa !important;
             font-family: 'Patrick Hand', cursive;
             font-size: 1.1rem;
             padding: 0.6rem 0.8rem;
         }
 
         .form-control:focus {
-            box-shadow: 3px 3px 0px rgba(139, 92, 246, 0.3) !important;
-            border-color: #8b5cf6 !important;
+            box-shadow: 3px 3px 0px rgba(180, 227, 211, 0.5) !important;
+            border-color: var(--mint-green-dark) !important;
             background-color: #fff !important;
         }
 
@@ -157,7 +160,6 @@
             border-radius: 4px;
             color: var(--border-dark);
             padding: 0.8rem;
-            font-weight: bold;
             font-family: 'Architects Daughter', cursive;
             font-size: 1.2rem;
             box-shadow: 4px 4px 0px var(--border-dark);
@@ -165,7 +167,8 @@
         }
 
         .btn-login:hover {
-            background: #81c7b3;
+            background: var(--mint-green-dark);
+            color: var(--border-dark);
             transform: translate(2px, 2px);
             box-shadow: 2px 2px 0px var(--border-dark);
         }
@@ -181,7 +184,7 @@
 <body>
 
     <div class="login-wrapper">
-        <!-- LADO ESQUERDO (CAPA) -->
+        <!-- LADO ESQUERDO (CAPA ESCURA COM VERDE E AMARELO) -->
         <div class="login-left d-none d-md-flex">
             <div class="brand-logo">
                 Meu<br>Financeiro
@@ -200,7 +203,7 @@
                 </div>
 
                 {% if form.errors %}
-                    <div class="alert alert-danger py-2 text-center fw-bold" style="border: 2px solid #222; background-color: #f7b2bd; color: #222;">
+                    <div class="alert alert-danger py-2 text-center fw-bold" style="border: 2px solid #222; background-color: #f8d7da; color: #222;">
                         <i class="bi bi-exclamation-triangle"></i> Usuário ou senha incorretos.
                     </div>
                 {% endif %}

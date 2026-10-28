@@ -6,7 +6,19 @@
 {% block content %}
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
-        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        
+        /* FUNDO VERDE SÁLVIA */
+        .journal-bg { 
+            background-color: #e8f0e8; 
+            background-image: linear-gradient(#dce8dc 1px, transparent 1px); 
+            background-size: 100% 28px; 
+            font-family: 'Patrick Hand', cursive; 
+            padding: 30px; 
+            border-radius: 8px; 
+            margin-top: -10px; 
+            color: #333; 
+        }
+        
         .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; margin-bottom: 20px; text-align: center; }
         
         .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 6px !important; height: 100%; }
@@ -22,8 +34,14 @@
             border-radius: 4px; 
             background-color: #fff; 
             width: 100%; 
-            display: flex; 
+            position: relative; 
             overflow: hidden;
+        }
+        .barra-preenchimento {
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 
@@ -49,7 +67,7 @@
                 <div class="card card-journal">
                     <div class="card-body p-3 text-center">
                         <div class="label-mini">Receitas</div>
-                        <div class="fs-3 text-azul mt-1">R$ {{ total_receitas|moeda }}</div>
+                        <div class="fs-3 text-primary mt-1" style="color: #0ea5e9 !important;">R$ {{ total_receitas|moeda }}</div>
                     </div>
                 </div>
             </div>
@@ -57,7 +75,7 @@
                 <div class="card card-journal">
                     <div class="card-body p-3 text-center">
                         <div class="label-mini">Gastos</div>
-                        <div class="fs-3 text-vermelho mt-1">R$ {{ total_gastos|moeda }}</div>
+                        <div class="fs-3 text-danger mt-1" style="color: #dc2626 !important;">R$ {{ total_gastos|moeda }}</div>
                     </div>
                 </div>
             </div>
@@ -65,7 +83,7 @@
                 <div class="card card-journal">
                     <div class="card-body p-3 text-center">
                         <div class="label-mini">Sobra</div>
-                        <div class="fs-3 text-verde mt-1">R$ {{ verba|moeda }}</div>
+                        <div class="fs-3 text-success mt-1" style="color: #16a34a !important;">R$ {{ verba|moeda }}</div>
                     </div>
                 </div>
             </div>
@@ -94,40 +112,37 @@
                     <div class="card-body p-3">
                         <h6 class="label-mini mb-4">Método 50-30-20</h6>
                         
-                        <!-- Essenciais -->
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-1">
-                                <span><i class="bi bi-house-door text-roxo"></i> Essenciais (≤ 50%)</span>
-                                <span class="text-roxo">R$ {{ gastos_essenciais|moeda }}</span>
+                                <span><i class="bi bi-house-door text-purple" style="color: #8b5cf6 !important;"></i> Essenciais (≤ 50%)</span>
+                                <span class="text-purple" style="color: #8b5cf6 !important;">R$ {{ gastos_essenciais|moeda }}</span>
                             </div>
                             <div class="barra-fundo">
-                                <div style="width: {{ pct_essenciais }}%; background-color: #8b5cf6; height: 100%;"></div>
+                                <div class="barra-preenchimento" style="width: {{ pct_essenciais }}%; background-color: #8b5cf6;"></div>
                             </div>
-                            <div class="text-end text-roxo mt-1" style="font-size: 0.75rem;">{{ pct_essenciais|floatformat:1 }}%</div>
+                            <div class="text-end text-purple mt-1" style="font-size: 0.75rem; color: #8b5cf6 !important;">{{ pct_essenciais|floatformat:1 }}%</div>
                         </div>
 
-                        <!-- Não Essenciais -->
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-1">
-                                <span><i class="bi bi-controller text-vermelho"></i> Não Essenciais (≤ 30%)</span>
-                                <span class="text-vermelho">R$ {{ gastos_nao_essenciais|moeda }}</span>
+                                <span><i class="bi bi-controller text-danger" style="color: #dc2626 !important;"></i> Não Essenciais (≤ 30%)</span>
+                                <span class="text-danger" style="color: #dc2626 !important;">R$ {{ gastos_nao_essenciais|moeda }}</span>
                             </div>
                             <div class="barra-fundo">
-                                <div style="width: {{ pct_nao_essenciais }}%; background-color: #dc2626; height: 100%;"></div>
+                                <div class="barra-preenchimento" style="width: {{ pct_nao_essenciais }}%; background-color: #dc2626;"></div>
                             </div>
-                            <div class="text-end text-vermelho mt-1" style="font-size: 0.75rem;">{{ pct_nao_essenciais|floatformat:1 }}%</div>
+                            <div class="text-end text-danger mt-1" style="font-size: 0.75rem; color: #dc2626 !important;">{{ pct_nao_essenciais|floatformat:1 }}%</div>
                         </div>
 
-                        <!-- Sobra -->
                         <div>
                             <div class="d-flex justify-content-between mb-1">
-                                <span><i class="bi bi-piggy-bank text-verde"></i> Sobra (≥ 20%)</span>
-                                <span class="text-verde">R$ {{ verba|moeda }}</span>
+                                <span><i class="bi bi-piggy-bank text-success" style="color: #16a34a !important;"></i> Sobra (≥ 20%)</span>
+                                <span class="text-success" style="color: #16a34a !important;">R$ {{ verba|moeda }}</span>
                             </div>
                             <div class="barra-fundo">
-                                <div style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%; background-color: #16a34a; height: 100%;"></div>
+                                <div class="barra-preenchimento" style="width: {% if pct_sobra > 0 %}{{ pct_sobra }}{% else %}0{% endif %}%; background-color: #16a34a;"></div>
                             </div>
-                            <div class="text-end text-verde mt-1" style="font-size: 0.75rem;">{{ pct_sobra|floatformat:1 }}%</div>
+                            <div class="text-end text-success mt-1" style="font-size: 0.75rem; color: #16a34a !important;">{{ pct_sobra|floatformat:1 }}%</div>
                         </div>
                     </div>
                 </div>
@@ -146,12 +161,11 @@
                                     <div class="border rounded p-3" style="background: #f8fafc; border-color: #e2e8f0 !important;">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="text-dark text-truncate" style="font-size: 0.9rem; max-width: 70%;">{{ o.categoria.nome }}</span>
-                                            <span class="text-{% if o.cor == 'danger' %}vermelho{% elif o.cor == 'success' %}verde{% else %}warning{% endif %}" style="font-size: 0.85rem;">{{ o.pct_usado|floatformat:0 }}%</span>
+                                            <span class="{% if o.cor == 'danger' %}text-danger{% elif o.cor == 'success' %}text-success{% else %}text-warning{% endif %}" style="font-size: 0.85rem;">{{ o.pct_usado|floatformat:0 }}%</span>
                                         </div>
                                         
-                                        <!-- BARRA CORRIGIDA -->
                                         <div class="barra-fundo">
-                                            <div style="width: {{ o.pct_usado_exibicao }}%; background-color: {% if o.cor == 'danger' %}#dc2626{% elif o.cor == 'success' %}#16a34a{% else %}#f59e0b{% endif %}; height: 100%;"></div>
+                                            <div class="barra-preenchimento" style="width: {{ o.pct_usado_exibicao }}%; background-color: {% if o.cor == 'danger' %}#dc2626{% elif o.cor == 'success' %}#16a34a{% else %}#f59e0b{% endif %};"></div>
                                         </div>
                                         
                                         <div class="d-flex justify-content-between mt-2" style="font-size: 0.8rem;">
@@ -178,7 +192,7 @@
                                     <div class="text-dark" style="font-size: 0.9rem;">{{ c.cartao.nome }}</div>
                                     <small class="text-muted" style="font-size: 0.75rem;">Limite: R$ {{ c.cartao.limite|moeda }}</small>
                                 </div>
-                                <div class="text-roxo" style="font-size: 1rem;">R$ {{ c.total_mes|moeda }}</div>
+                                <div class="text-purple" style="font-size: 1rem; color: #8b5cf6 !important;">R$ {{ c.total_mes|moeda }}</div>
                             </div>
                         {% empty %}
                             <div class="text-muted" style="font-size: 0.9rem;">Nenhum cartão cadastrado.</div>
@@ -203,7 +217,7 @@
                                         <div class="text-dark" style="font-size: 0.9rem;">{{ r.descricao }}</div>
                                         <small class="text-muted" style="font-size: 0.75rem;">{{ r.data|date:"d/m" }} • {{ r.pessoa.nome }}</small>
                                     </div>
-                                    <span class="text-azul">+ R$ {{ r.valor|moeda }}</span>
+                                    <span style="color: #0ea5e9 !important;">+ R$ {{ r.valor|moeda }}</span>
                                 </li>
                             {% empty %}
                                 <li class="list-group-item text-muted text-center border-0 py-4">Vazio</li>
@@ -224,12 +238,12 @@
                                 <li class="list-group-item list-item-journal d-flex justify-content-between align-items-center border-0">
                                     <div>
                                         <div class="text-dark" style="font-size: 0.9rem;">
-                                            {% if g.cartao %}<i class="bi bi-credit-card text-roxo"></i> {% endif %}
+                                            {% if g.cartao %}<i class="bi bi-credit-card" style="color: #8b5cf6 !important;"></i> {% endif %}
                                             {{ g.descricao }}
                                         </div>
                                         <small class="text-muted" style="font-size: 0.75rem;">{{ g.data|date:"d/m" }} • {{ g.categoria.nome }}</small>
                                     </div>
-                                    <span class="text-vermelho">- R$ {{ g.valor|moeda }}</span>
+                                    <span style="color: #dc2626 !important;">- R$ {{ g.valor|moeda }}</span>
                                 </li>
                             {% endfor %}
                         </ul>
