@@ -1965,14 +1965,17 @@ from .forms import GastoForm
 @login_required
 def home(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
-    if not mes_ativo_id:
+    
+    # BLINDAGEM: Tenta achar o mês, se não achar (ou se o banco tiver vazio), cria ou pega o primeiro
+    try:
+        mes_ativo = Mes.objects.get(id=mes_ativo_id) if mes_ativo_id else None
+        if not mes_ativo:
+            raise Mes.DoesNotExist
+    except Mes.DoesNotExist:
         hoje = date.today()
         mes_ativo, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
         request.session['mes_ativo_id'] = mes_ativo.id
-    else:
-        mes_ativo = Mes.objects.get(id=mes_ativo_id)
 
-    # Navegação
     ano_base = int(request.GET.get('ano', mes_ativo.ano))
     mes_base = int(request.GET.get('mes', mes_ativo.mes))
     mes_exibido, _ = Mes.objects.get_or_create(ano=ano_base, mes=mes_base)
@@ -1983,14 +1986,12 @@ def home(request):
 
     hoje = date.today()
     
-    # 1. CONTAS INDIVIDUAIS
     contas_individuais = Gasto.objects.filter(
         cartao__isnull=True,
         data__year=ano_base, 
         data__month=mes_base
     ).order_by('data')
 
-    # 2. FATURAS DE CARTÃO
     gastos_cartao = Gasto.objects.filter(
         cartao__isnull=False,
         mes=mes_exibido 
@@ -1999,17 +2000,16 @@ def home(request):
     cartoes_resumo = {}
     for g in gastos_cartao:
         if g.cartao.id not in cartoes_resumo:
+            dia_venc = g.cartao.dia_vencimento if g.cartao.dia_vencimento else 1
+            data_vencimento = date(ano_base, mes_base, dia_venc)
+            
             cartoes_resumo[g.cartao.id] = {
                 'cartao': g.cartao,
                 'total': Decimal('0'),
-                'vencimento': g.data,
+                'vencimento': data_vencimento,
             }
         cartoes_resumo[g.cartao.id]['total'] += g.valor
-        # Pega a maior data como base pro vencimento (se não tiver campo específico)
-        if g.data > cartoes_resumo[g.cartao.id]['vencimento']:
-            cartoes_resumo[g.cartao.id]['vencimento'] = g.data
 
-    # Próximas Contas e Atrasadas
     if ano_base == hoje.year and mes_base == hoje.month:
         proximas = [c for c in contas_individuais if c.data >= hoje]
         atrasadas = [c for c in contas_individuais if c.data < hoje]
@@ -2019,10 +2019,7 @@ def home(request):
 
     lista_proximas = proximas[:5]
 
-    # --- CALENDÁRIO ---
     eventos_calendario = []
-    
-    # Adiciona as contas individuais (bolinhas coloridas nos dias exatos)
     for g in contas_individuais:
         cor = '#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899'
         eventos_calendario.append({
@@ -2033,20 +2030,18 @@ def home(request):
             'textColor': '#ffffff'
         })
         
-    # Adiciona as faturas de cartão (uma única bolinha com o valor total no dia de vencimento aproximado)
     for c_id, c_info in cartoes_resumo.items():
-        # Usando a data do primeiro gasto como "vencimento" para o calendário
-        data_vencimento = c_info['vencimento'].isoformat()
         eventos_calendario.append({
             'title': f"Fatura {c_info['cartao'].nome}: R$ {c_info['total']}",
-            'start': data_vencimento,
-            'backgroundColor': '#d1b3e2', # Roxo claro da fatura
+            'start': c_info['vencimento'].isoformat(),
+            'backgroundColor': '#d1b3e2', 
             'borderColor': '#222222',
             'textColor': '#111111'
         })
 
     eventos_json = json.dumps(eventos_calendario)
 
+    # Prepara o formulário para a Home
     from .forms import GastoForm
     form_gasto = GastoForm()
 
@@ -2062,8 +2057,110 @@ def home(request):
         'mes_anterior': data_anterior.month,
         'ano_posterior': data_posterior.year,
         'mes_posterior': data_posterior.month,
-        'form_gasto': form_gasto, # <-- NOVO
+        'form_gasto': form_gasto,
     })
+# @login_required
+# def home(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         hoje = date.today()
+#         mes_ativo, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+#         request.session['mes_ativo_id'] = mes_ativo.id
+#     else:
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id)
+
+#     # Navegação
+#     ano_base = int(request.GET.get('ano', mes_ativo.ano))
+#     mes_base = int(request.GET.get('mes', mes_ativo.mes))
+#     mes_exibido, _ = Mes.objects.get_or_create(ano=ano_base, mes=mes_base)
+    
+#     data_atual = date(ano_base, mes_base, 1)
+#     data_anterior = data_atual - relativedelta(months=1)
+#     data_posterior = data_atual + relativedelta(months=1)
+
+#     hoje = date.today()
+    
+#     # 1. CONTAS INDIVIDUAIS
+#     contas_individuais = Gasto.objects.filter(
+#         cartao__isnull=True,
+#         data__year=ano_base, 
+#         data__month=mes_base
+#     ).order_by('data')
+
+#     # 2. FATURAS DE CARTÃO
+#     gastos_cartao = Gasto.objects.filter(
+#         cartao__isnull=False,
+#         mes=mes_exibido 
+#     )
+    
+#     cartoes_resumo = {}
+#     for g in gastos_cartao:
+#         if g.cartao.id not in cartoes_resumo:
+#             cartoes_resumo[g.cartao.id] = {
+#                 'cartao': g.cartao,
+#                 'total': Decimal('0'),
+#                 'vencimento': g.data,
+#             }
+#         cartoes_resumo[g.cartao.id]['total'] += g.valor
+#         # Pega a maior data como base pro vencimento (se não tiver campo específico)
+#         if g.data > cartoes_resumo[g.cartao.id]['vencimento']:
+#             cartoes_resumo[g.cartao.id]['vencimento'] = g.data
+
+#     # Próximas Contas e Atrasadas
+#     if ano_base == hoje.year and mes_base == hoje.month:
+#         proximas = [c for c in contas_individuais if c.data >= hoje]
+#         atrasadas = [c for c in contas_individuais if c.data < hoje]
+#     else:
+#         proximas = contas_individuais
+#         atrasadas = []
+
+#     lista_proximas = proximas[:5]
+
+#     # --- CALENDÁRIO ---
+#     eventos_calendario = []
+    
+#     # Adiciona as contas individuais (bolinhas coloridas nos dias exatos)
+#     for g in contas_individuais:
+#         cor = '#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899'
+#         eventos_calendario.append({
+#             'title': f"R$ {g.valor} - {g.descricao}",
+#             'start': g.data.isoformat(),
+#             'backgroundColor': cor,
+#             'borderColor': '#222222',
+#             'textColor': '#ffffff'
+#         })
+        
+#     # Adiciona as faturas de cartão (uma única bolinha com o valor total no dia de vencimento aproximado)
+#     for c_id, c_info in cartoes_resumo.items():
+#         # Usando a data do primeiro gasto como "vencimento" para o calendário
+#         data_vencimento = c_info['vencimento'].isoformat()
+#         eventos_calendario.append({
+#             'title': f"Fatura {c_info['cartao'].nome}: R$ {c_info['total']}",
+#             'start': data_vencimento,
+#             'backgroundColor': '#d1b3e2', # Roxo claro da fatura
+#             'borderColor': '#222222',
+#             'textColor': '#111111'
+#         })
+
+#     eventos_json = json.dumps(eventos_calendario)
+
+#     from .forms import GastoForm
+#     form_gasto = GastoForm()
+
+#     return render(request, 'financas/home.html', {
+#         'mes_ativo': mes_exibido, 
+#         'hoje': hoje,
+#         'cartoes_resumo': list(cartoes_resumo.values()),
+#         'lista_proximas': lista_proximas,
+#         'atrasadas': atrasadas,
+#         'total_atrasado': sum(g.valor for g in atrasadas),
+#         'eventos_json': eventos_json,
+#         'ano_anterior': data_anterior.year,
+#         'mes_anterior': data_anterior.month,
+#         'ano_posterior': data_posterior.year,
+#         'mes_posterior': data_posterior.month,
+#         'form_gasto': form_gasto, # <-- NOVO
+#     })
 # @login_required
 # def home(request):
 #     # 1. Pega o mês ativo do sistema
