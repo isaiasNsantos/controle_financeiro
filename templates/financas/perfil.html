@@ -1,0 +1,83 @@
+{% extends 'financas/base.html' %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block content %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #e8f0e8; background-image: linear-gradient(#dce8dc 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; margin-bottom: 20px; text-align: center; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 6px !important; height: 100%; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #222; object-fit: cover; box-shadow: 4px 4px 0px #222; }
+        .avatar-default { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #222; background-color: #d1b3e2; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #fff; box-shadow: 4px 4px 0px #222; }
+    </style>
+
+    <div class="journal-bg">
+        <div class="main-title">MEU PERFIL</div>
+
+        <div class="row justify-content-center g-4">
+            
+            <!-- COLUNA ESQUERDA: FOTO E DADOS -->
+            <div class="col-md-4">
+                <div class="card card-journal p-4 text-center">
+                    <div class="d-flex justify-content-center mb-3">
+                        {% if perfil.foto %}
+                            <img src="{{ perfil.foto.url }}" alt="Foto de Perfil" class="avatar">
+                        {% else %}
+                            <div class="avatar-default">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 style="font-family: 'Architects Daughter'; margin-bottom: 5px;">{{ request.user.username }}</h4>
+                    <p class="text-muted small mb-4">{{ request.user.email|default:"Sem email cadastrado" }}</p>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3 text-start">
+                            <label class="form-label">Alterar Foto</label>
+                            {{ form_perfil.foto }}
+                        </div>
+                        <button type="submit" name="salvar_foto" class="btn btn-journal w-100" style="background: #a8c8f0; color: #222;">Salvar Foto</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- COLUNA DIREITA: MUDAR SENHA -->
+            <div class="col-md-6">
+                <div class="card card-journal p-4">
+                    <h5 style="font-family: 'Architects Daughter'; margin-bottom: 20px;"><i class="bi bi-shield-lock"></i> Alterar Senha</h5>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Senha Atual</label>
+                            {{ form_senha.old_password }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Nova Senha</label>
+                            {{ form_senha.new_password1 }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Confirmar Nova Senha</label>
+                            {{ form_senha.new_password2 }}
+                        </div>
+
+                        {% if form_senha.errors %}
+                            <div class="alert alert-danger py-2" style="font-size: 0.9rem;">
+                                {{ form_senha.errors }}
+                            </div>
+                        {% endif %}
+
+                        <button type="submit" name="salvar_senha" class="btn btn-journal w-100" style="background: #f7b2bd; color: #222;">Alterar Senha</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

@@ -113,4 +113,6 @@ urlpatterns = [
     path('historico/<int:mes_id>/', views.historico_detalhe, name='historico_detalhe'),
     path('cofre/', views.cofre, name='cofre'),
     path('cofre/divida/<int:divida_id>/excluir/', views.divida_excluir, name='divida_excluir'),
+
+    path('perfil/', views.perfil, name='perfil'),
 ]

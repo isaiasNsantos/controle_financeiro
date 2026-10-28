@@ -1,6 +1,8 @@
 from django import forms
 from .models import Pessoa, Categoria, FormaPagamento, Mes, Receita, Gasto, Cartao, Divida, ReservaEmergencia
 from datetime import date
+from django.contrib.auth.forms import PasswordChangeForm
+from .models import Perfil
 
 MESES_CHOICES = [
     (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), (4, 'Abril'),
@@ -257,3 +259,16 @@ class ReservaForm(forms.ModelForm):
             'valor_guardado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'meses_alvo': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+
+class PerfilForm(forms.ModelForm):
+    class Meta:
+        model = Perfil
+        fields = ['foto']
+        widgets = {
+            'foto': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class AlterarSenhaForm(PasswordChangeForm):
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label="Senha Atual")
+    new_password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label="Nova Senha")
+    new_password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label="Confirmar Nova Senha")

@@ -21,7 +21,7 @@
 
         /* MENU BRANCO PARA CONTRASTE */
         .navbar-custom {
-            background-color: #ffffff; /* Branco */
+            background-color: #ffffff;
             border-bottom: 2px solid #222;
             padding: 0.8rem 0;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
@@ -48,8 +48,8 @@
         }
         
         .nav-link-custom:hover, .nav-link-custom.active {
-            background-color: #e8f0e8; /* Verde bem claro no hover */
-            color: #16a34a !important; /* Texto verde escuro */
+            background-color: #e8f0e8;
+            color: #16a34a !important;
             box-shadow: 2px 2px 0px #222;
             border: 1px solid #222;
         }
@@ -90,6 +90,38 @@
         .alert-danger.alert-postit { background-color: #f7b2bd; color: #222; }
         .alert-warning.alert-postit { background-color: #fce8a1; color: #222; }
         .alert-info.alert-postit { background-color: #a8c8f0; color: #222; }
+
+        /* FOTO DE PERFIL */
+        .foto-perfil-menu {
+            width: 38px; 
+            height: 38px; 
+            border-radius: 50%; 
+            border: 2px solid #222; 
+            box-shadow: 2px 2px 0px #222; 
+            object-fit: cover;
+            transition: transform 0.1s;
+        }
+        .foto-perfil-menu:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #222;
+        }
+        .foto-perfil-fallback {
+            width: 38px; 
+            height: 38px; 
+            border-radius: 50%; 
+            border: 2px solid #222; 
+            background-color: #a8c8f0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 2px 2px 0px #222; 
+            color: #222;
+            transition: transform 0.1s;
+        }
+        .foto-perfil-fallback:hover {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #222;
+        }
 
         /* FOOTER */
         .footer-journal {
@@ -133,10 +165,24 @@
             </div>
 
             <!-- BOTÕES DE ACESSO -->
-            <div class="ms-auto ms-md-3 d-flex gap-2">
+            <div class="ms-auto ms-md-3 d-flex align-items-center gap-2">
+                <!-- BOTÃO ADMIN -->
                 <a href="/admin/" target="_blank" class="btn-logout" style="background: #d1b3e2; color: #222 !important; text-decoration: none;">
                     <i class="bi bi-gear-fill"></i> Admin
                 </a>
+                
+                <!-- FOTO DE PERFIL REDONDINHA -->
+                <a href="{% url 'perfil' %}" title="Meu Perfil" class="text-decoration-none">
+                    {% if foto_perfil_url %}
+                        <img src="{{ foto_perfil_url }}" alt="Perfil" class="foto-perfil-menu">
+                    {% else %}
+                        <div class="foto-perfil-fallback">
+                            <i class="bi bi-person-fill" style="font-size: 1.2rem;"></i>
+                        </div>
+                    {% endif %}
+                </a>
+
+                <!-- BOTÃO SAIR -->
                 <form method="post" action="{% url 'logout' %}" class="d-inline m-0 p-0">
                     {% csrf_token %}
                     <button type="submit" class="btn-logout">

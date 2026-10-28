@@ -1,5 +1,5 @@
 from django.db import models 
-
+from django.contrib.auth.models import User
 
 class Pessoa(models.Model):
     nome = models.CharField(max_length=50)
@@ -177,3 +177,10 @@ class ReservaEmergencia(models.Model):
 
     def __str__(self):
         return f"Reserva: R$ {self.valor_guardado}"
+
+class Perfil(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    foto = models.ImageField(upload_to='fotos_perfil/', null=True, blank=True)
+    
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"

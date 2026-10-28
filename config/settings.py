@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'financas',
+    
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'financas.context_processors.perfil_foto',
             ],
         },
     },
@@ -116,6 +118,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Pasta onde os arquivos estáticos serão reunidos em produção
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -135,3 +141,4 @@ LOGIN_REDIRECT_URL = 'financas_home'
 LOGOUT_REDIRECT_URL = 'login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
