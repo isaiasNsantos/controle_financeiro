@@ -110,6 +110,7 @@ class Cartao(models.Model):
     nome = models.CharField(max_length=50)
     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     dia_vencimento = models.IntegerField(null=True, blank=True, help_text="Dia do mês que a fatura vence (ex: 3)")
+    cor = models.CharField(max_length=20, default='#e9d5ff', help_text="Cor em hexadecimal para o cartão") # <-- NOVO CAMPO
     ativo = models.BooleanField(default=True)
 
     class Meta:

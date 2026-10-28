@@ -285,11 +285,12 @@ class GastoForm(forms.ModelForm):
 class CartaoForm(forms.ModelForm):
     class Meta:
         model = Cartao
-        fields = ['nome', 'limite', 'dia_vencimento', 'ativo'] # O 'dia_vencimento' tem que estar aqui!
+        fields = ['nome', 'limite', 'dia_vencimento', 'cor', 'ativo'] # <-- 'cor' adicionado
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Nubank Isaias'}),
             'limite': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
             'dia_vencimento': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '31', 'placeholder': 'Ex: 3'}),
+            'cor': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color', 'title': 'Escolha a cor do cartão'}), # <-- TYPE COLOR
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

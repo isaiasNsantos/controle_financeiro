@@ -654,6 +654,7 @@ def cartao_excluir(request, cartao_id):
 # ==========================================
 # DASHBOARD
 # ==========================================
+
 @login_required
 def dashboard(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -715,13 +716,17 @@ def dashboard(request):
             cor = 'warning'
         else:
             cor = 'success'
-
+            
+        # Garante que o valor da porcentagem vai como string numérica limpa (ex: "25")
+        pct_usado_exibicao = min(pct_usado, 100) # Barra não passa de 100%
+        
         orcamentos.append({
             'categoria': cat,
             'gasto': gasto_cat,
             'limite': cat.limite_mensal,
             'restante': restante,
             'pct_usado': pct_usado,
+            'pct_usado_exibicao': pct_usado_exibicao, # Usado na largura da barra
             'cor': cor,
         })
 
@@ -743,7 +748,7 @@ def dashboard(request):
     ultimas_receitas = Receita.objects.filter(mes=mes_ativo).order_by('-id')[:5]
     ultimos_gastos = Gasto.objects.filter(mes=mes_ativo).order_by('-id')[:5]
 
-    # --- DADOS PARA O GRÁFICO (GASTOS POR CATEGORIA) ---
+    # --- DADOS PARA O GRÁFICO ---
     gastos_por_categoria = Gasto.objects.filter(mes=mes_ativo).values('categoria__nome').annotate(
         total=Sum('valor')
     ).order_by('-total')
@@ -770,6 +775,122 @@ def dashboard(request):
         'grafico_labels': grafico_labels,
         'grafico_valores': grafico_valores,
     })
+# @login_required
+# def dashboard(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+#     if not mes_ativo_id:
+#         return render(request, 'financas/dashboard.html', {'sem_mes_ativo': True})
+
+#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
+
+#     # Totais
+#     total_receitas = Receita.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+#     total_gastos = Gasto.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+#     verba = total_receitas - total_gastos
+
+#     # Alerta
+#     if total_receitas == 0:
+#         alerta = 'sem_receita'
+#     elif verba < 0:
+#         alerta = 'estourado'
+#     elif verba < (total_receitas * Decimal('0.10')):
+#         alerta = 'apertado'
+#     else:
+#         alerta = 'ok'
+
+#     # 50-30-20
+#     gastos_essenciais = Gasto.objects.filter(
+#         mes=mes_ativo, categoria__tipo='E'
+#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+#     gastos_nao_essenciais = Gasto.objects.filter(
+#         mes=mes_ativo, categoria__tipo='N'
+#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+#     if total_receitas > 0:
+#         pct_essenciais = float((gastos_essenciais / total_receitas) * 100)
+#         pct_nao_essenciais = float((gastos_nao_essenciais / total_receitas) * 100)
+#         pct_sobra = float((verba / total_receitas) * 100)
+#     else:
+#         pct_essenciais = 0
+#         pct_nao_essenciais = 0
+#         pct_sobra = 0
+
+#     # Orçamentos por categoria
+#     categorias_com_limite = Categoria.objects.filter(
+#         ativo=True, limite_mensal__isnull=False
+#     ).exclude(limite_mensal=0)
+
+#     orcamentos = []
+#     for cat in categorias_com_limite:
+#         gasto_cat = Gasto.objects.filter(
+#             mes=mes_ativo, categoria=cat
+#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+#         pct_usado = float((gasto_cat / cat.limite_mensal) * 100) if cat.limite_mensal > 0 else 0
+#         restante = cat.limite_mensal - gasto_cat
+
+#         if pct_usado > 100:
+#             cor = 'danger'
+#         elif pct_usado >= 70:
+#             cor = 'warning'
+#         else:
+#             cor = 'success'
+
+#         orcamentos.append({
+#             'categoria': cat,
+#             'gasto': gasto_cat,
+#             'limite': cat.limite_mensal,
+#             'restante': restante,
+#             'pct_usado': pct_usado,
+#             'cor': cor,
+#         })
+
+#     # --- CARTÕES ---
+#     cartoes_ativos = Cartao.objects.filter(ativo=True)
+#     resumo_cartoes = []
+    
+#     for c in cartoes_ativos:
+#         total_cartao = Gasto.objects.filter(
+#             mes=mes_ativo, cartao=c
+#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+        
+#         resumo_cartoes.append({
+#             'cartao': c,
+#             'total_mes': total_cartao
+#         })
+
+#     # Últimos 5 lançamentos
+#     ultimas_receitas = Receita.objects.filter(mes=mes_ativo).order_by('-id')[:5]
+#     ultimos_gastos = Gasto.objects.filter(mes=mes_ativo).order_by('-id')[:5]
+
+#     # --- DADOS PARA O GRÁFICO (GASTOS POR CATEGORIA) ---
+#     gastos_por_categoria = Gasto.objects.filter(mes=mes_ativo).values('categoria__nome').annotate(
+#         total=Sum('valor')
+#     ).order_by('-total')
+
+#     grafico_labels = [item['categoria__nome'] for item in gastos_por_categoria]
+#     grafico_valores = [float(item['total']) for item in gastos_por_categoria]
+
+#     return render(request, 'financas/dashboard.html', {
+#         'sem_mes_ativo': False,
+#         'mes_ativo': mes_ativo,
+#         'total_receitas': total_receitas,
+#         'total_gastos': total_gastos,
+#         'verba': verba,
+#         'alerta': alerta,
+#         'gastos_essenciais': gastos_essenciais,
+#         'gastos_nao_essenciais': gastos_nao_essenciais,
+#         'pct_essenciais': pct_essenciais,
+#         'pct_nao_essenciais': pct_nao_essenciais,
+#         'pct_sobra': pct_sobra,
+#         'orcamentos': orcamentos,
+#         'resumo_cartoes': resumo_cartoes,
+#         'ultimas_receitas': ultimas_receitas,
+#         'ultimos_gastos': ultimos_gastos,
+#         'grafico_labels': grafico_labels,
+#         'grafico_valores': grafico_valores,
+#     })
 
 # ==========================================
 # IMPORTAÇÃO DE FATURA
@@ -2030,16 +2151,17 @@ def exportar_relatorio(request):
 from .forms import GastoForm
 @login_required
 def home(request):
-    mes_ativo_id = request.session.get('mes_ativo_id')
-    
     # BLINDAGEM: Tenta achar o mês, se não achar (ou se o banco tiver vazio), cria ou pega o primeiro
-    try:
-        mes_ativo = Mes.objects.get(id=mes_ativo_id) if mes_ativo_id else None
+    mes_ativo_id = request.session.get('mes_ativo_id')
+    mes_ativo = None
+    if mes_ativo_id:
+        mes_ativo = Mes.objects.filter(id=mes_ativo_id).first()
+    
+    if not mes_ativo:
+        mes_ativo = Mes.objects.order_by('-ano', '-mes').first()
         if not mes_ativo:
-            raise Mes.DoesNotExist
-    except Mes.DoesNotExist:
-        hoje = date.today()
-        mes_ativo, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+            hoje = date.today()
+            mes_ativo, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
         request.session['mes_ativo_id'] = mes_ativo.id
 
     ano_base = int(request.GET.get('ano', mes_ativo.ano))
@@ -2052,12 +2174,14 @@ def home(request):
 
     hoje = date.today()
     
+    # 1. CONTAS INDIVIDUAIS (Filtra pela data de vencimento)
     contas_individuais = Gasto.objects.filter(
         cartao__isnull=True,
         data__year=ano_base, 
         data__month=mes_base
     ).order_by('data')
 
+    # 2. FATURAS DE CARTÃO (Pelo pacote do mês)
     gastos_cartao = Gasto.objects.filter(
         cartao__isnull=False,
         mes=mes_exibido 
@@ -2076,6 +2200,7 @@ def home(request):
             }
         cartoes_resumo[g.cartao.id]['total'] += g.valor
 
+    # Próximas Contas e Atrasadas
     if ano_base == hoje.year and mes_base == hoje.month:
         proximas = [c for c in contas_individuais if c.data >= hoje]
         atrasadas = [c for c in contas_individuais if c.data < hoje]
@@ -2085,6 +2210,7 @@ def home(request):
 
     lista_proximas = proximas[:5]
 
+    # Calendário
     eventos_calendario = []
     for g in contas_individuais:
         cor = '#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899'
@@ -2097,17 +2223,19 @@ def home(request):
         })
         
     for c_id, c_info in cartoes_resumo.items():
+        # PUXA A COR DO BANCO DE DADOS
+        cor_hex = c_info['cartao'].cor if c_info['cartao'].cor else '#d1b3e2'
+        
         eventos_calendario.append({
             'title': f"Fatura {c_info['cartao'].nome}: R$ {c_info['total']}",
             'start': c_info['vencimento'].isoformat(),
-            'backgroundColor': '#d1b3e2', 
+            'backgroundColor': cor_hex,
             'borderColor': '#222222',
             'textColor': '#111111'
         })
 
     eventos_json = json.dumps(eventos_calendario)
 
-    # Prepara o formulário para a Home
     from .forms import GastoForm
     form_gasto = GastoForm()
 
@@ -2125,6 +2253,103 @@ def home(request):
         'mes_posterior': data_posterior.month,
         'form_gasto': form_gasto,
     })
+# @login_required
+# def home(request):
+#     mes_ativo_id = request.session.get('mes_ativo_id')
+    
+#     # BLINDAGEM: Tenta achar o mês, se não achar (ou se o banco tiver vazio), cria ou pega o primeiro
+#     try:
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id) if mes_ativo_id else None
+#         if not mes_ativo:
+#             raise Mes.DoesNotExist
+#     except Mes.DoesNotExist:
+#         hoje = date.today()
+#         mes_ativo, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+#         request.session['mes_ativo_id'] = mes_ativo.id
+
+#     ano_base = int(request.GET.get('ano', mes_ativo.ano))
+#     mes_base = int(request.GET.get('mes', mes_ativo.mes))
+#     mes_exibido, _ = Mes.objects.get_or_create(ano=ano_base, mes=mes_base)
+    
+#     data_atual = date(ano_base, mes_base, 1)
+#     data_anterior = data_atual - relativedelta(months=1)
+#     data_posterior = data_atual + relativedelta(months=1)
+
+#     hoje = date.today()
+    
+#     contas_individuais = Gasto.objects.filter(
+#         cartao__isnull=True,
+#         data__year=ano_base, 
+#         data__month=mes_base
+#     ).order_by('data')
+
+#     gastos_cartao = Gasto.objects.filter(
+#         cartao__isnull=False,
+#         mes=mes_exibido 
+#     )
+    
+#     cartoes_resumo = {}
+#     for g in gastos_cartao:
+#         if g.cartao.id not in cartoes_resumo:
+#             dia_venc = g.cartao.dia_vencimento if g.cartao.dia_vencimento else 1
+#             data_vencimento = date(ano_base, mes_base, dia_venc)
+            
+#             cartoes_resumo[g.cartao.id] = {
+#                 'cartao': g.cartao,
+#                 'total': Decimal('0'),
+#                 'vencimento': data_vencimento,
+#             }
+#         cartoes_resumo[g.cartao.id]['total'] += g.valor
+
+#     if ano_base == hoje.year and mes_base == hoje.month:
+#         proximas = [c for c in contas_individuais if c.data >= hoje]
+#         atrasadas = [c for c in contas_individuais if c.data < hoje]
+#     else:
+#         proximas = contas_individuais
+#         atrasadas = []
+
+#     lista_proximas = proximas[:5]
+
+#     eventos_calendario = []
+#     for g in contas_individuais:
+#         cor = '#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899'
+#         eventos_calendario.append({
+#             'title': f"R$ {g.valor} - {g.descricao}",
+#             'start': g.data.isoformat(),
+#             'backgroundColor': cor,
+#             'borderColor': '#222222',
+#             'textColor': '#ffffff'
+#         })
+        
+#     for c_id, c_info in cartoes_resumo.items():
+#         eventos_calendario.append({
+#             'title': f"Fatura {c_info['cartao'].nome}: R$ {c_info['total']}",
+#             'start': c_info['vencimento'].isoformat(),
+#             'backgroundColor': '#d1b3e2', 
+#             'borderColor': '#222222',
+#             'textColor': '#111111'
+#         })
+
+#     eventos_json = json.dumps(eventos_calendario)
+
+#     # Prepara o formulário para a Home
+#     from .forms import GastoForm
+#     form_gasto = GastoForm()
+
+#     return render(request, 'financas/home.html', {
+#         'mes_ativo': mes_exibido, 
+#         'hoje': hoje,
+#         'cartoes_resumo': list(cartoes_resumo.values()),
+#         'lista_proximas': lista_proximas,
+#         'atrasadas': atrasadas,
+#         'total_atrasado': sum(g.valor for g in atrasadas),
+#         'eventos_json': eventos_json,
+#         'ano_anterior': data_anterior.year,
+#         'mes_anterior': data_anterior.month,
+#         'ano_posterior': data_posterior.year,
+#         'mes_posterior': data_posterior.month,
+#         'form_gasto': form_gasto,
+#     })
 # @login_required
 # def home(request):
 #     mes_ativo_id = request.session.get('mes_ativo_id')

@@ -27,12 +27,18 @@
                             <label class="form-label fw-bold">Limite (R$)</label>
                             {{ form.limite }}
                         </div>
-                        <!-- CAMPO NOVO AQUI -->
                         <div class="mb-3">
                             <label class="form-label fw-bold">Dia de Vencimento</label>
                             {{ form.dia_vencimento }}
                             <small class="text-muted" style="font-size: 0.8rem;">Ex: Se vence dia 3, digite 3.</small>
                         </div>
+                        
+                        <!-- CAMPO DE COR -->
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <label class="form-label fw-bold mb-0">Cor do Cartão:</label>
+                            {{ form.cor }}
+                        </div>
+                        
                         <div class="mb-4 form-check">
                             {{ form.ativo }}
                             <label class="form-check-label">Ativo</label>
