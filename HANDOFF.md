@@ -82,6 +82,10 @@ cd ~/controle_financeiro
 workon venv_financas
 python manage.py collectstatic
 
+git pull
+python manage.py makemigrations # (só se você não rodou no seu PC ainda)
+python manage.py migrate        # <--- ESSENCIAL
+python manage.py collectstatic  # (se mudou CSS/HTML)
 
 Passo 3: Rodar comandos específicos (só se necessário)
 Ainda no console, você deve rodar comandos extras apenas se:

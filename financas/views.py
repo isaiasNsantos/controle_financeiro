@@ -1616,7 +1616,7 @@ def home(request):
         proximas = contas_individuais
         atrasadas = []
 
-    lista_proximas = proximas[:5]
+    lista_proximas = proximas # <-- Mostra todas as contas individuais do mês
 
     # --- LISTA DE EXTRATO COMPLETO ---
     todos_gastos_mes = list(contas_individuais) + list(gastos_cartao)
