@@ -373,10 +373,13 @@ def gasto_lista(request):
         'total': total,
     })
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from dateutil.relativedelta import relativedelta
 import uuid
-from django.shortcuts import redirect, render
-from django.contrib import messages
+# Não esqueça de importar o seu form e models
+from .forms import GastoForm
+from .models import Gasto, Mes
 
 def gasto_novo(request):
     if request.method == 'POST':
@@ -384,55 +387,48 @@ def gasto_novo(request):
         if form.is_valid():
             gasto = form.save(commit=False)
             
+            # Pega os dados de parcelamento do form
             parcela_atual = form.cleaned_data.get('parcela_atual') or 1
             total_parcelas = form.cleaned_data.get('total_parcelas') or 1
 
+            # Se for parcelado (mais de 1 parcela)
             if total_parcelas > 1:
                 grupo_id = uuid.uuid4()
                 data_base = gasto.data
                 
-                # O mês ativo atual (que veio do form ou do sistema)
-                mes_base = gasto.mes 
-
-                # Loop para criar as parcelas
+                # Loop da parcela atual até a última
                 for i in range(parcela_atual, total_parcelas + 1):
-                    # Calcula a data do mês futuro
+                    # Calcula a data futura
                     nova_data = data_base + relativedelta(months=(i - parcela_atual))
                     
-                    # Tenta encontrar o mês correspondente no banco
-                    # (Supondo que seu model Mes tenha campos 'ano' e 'mes' ou algo assim)
+                    # Busca o Mês correspondente no banco usando o ano e o mês da nova data
                     try:
-                        # Se o seu model Mes for só uma string tipo "Nov/2026", a busca seria diferente.
-                        # Aqui tô assumindo que ele tem campos 'ano' e 'mes_numero' (1 a 12).
-                        # AJUSTE ESSA LINHA ABAIXO CONFORME O SEU MODEL MES:
-                        mes_parcela = Mes.objects.get(ano=nova_data.year, mes_numero=nova_data.month) 
+                        mes_parcela = Mes.objects.get(ano=nova_data.year, mes=nova_data.month)
                     except Mes.DoesNotExist:
-                        # Se o mês não existir no banco, a gente pula ou cria. 
-                        # O ideal é avisar o usuário.
-                        messages.error(request, f"O mês {nova_data.strftime('%m/%Y')} não existe no sistema. Crie-o antes de parcelar.")
-                        return redirect('gasto_novo') # Volta pro form
+                        messages.error(request, f"O mês {nova_data.month}/{nova_data.year} não está cadastrado. Cadastre-o primeiro.")
+                        return redirect('gasto_novo') # Volta pro formulário se o mês não existir
 
-                    # Cria o gasto para aquele mês
+                    # Cria o gasto da parcela
                     novo_gasto = Gasto(
-                        mes=mes_parcela, # O mês encontrado
-                        descricao=gasto.descricao,
-                        valor=gasto.valor, # Mantém o valor de R$ 128,62
-                        data=nova_data,
-                        categoria=gasto.categoria,
+                        mes=mes_parcela, 
+                        descricao=gasto.descricao, 
+                        valor=gasto.valor,
+                        data=nova_data, 
+                        categoria=gasto.categoria, 
                         pessoa=gasto.pessoa,
-                        forma_pagamento=gasto.forma_pagamento,
+                        forma_pagamento=gasto.forma_pagamento, 
                         cartao=gasto.cartao,
-                        parcela_atual=i,
-                        total_parcelas=total_parcelas,
+                        parcela_atual=i, 
+                        total_parcelas=total_parcelas, 
                         grupo_parcelas=grupo_id
                     )
                     novo_gasto.save()
                 
-                messages.success(request, f"Gasto parcelado em {total_parcelas}x com sucesso!")
+                messages.success(request, f"Gasto de R$ {gasto.valor} parcelado em {total_parcelas}x com sucesso!")
                 return redirect('gasto_lista')
             
+            # Se não for parcelado
             else:
-                # Se não for parcelado, salva normal
                 gasto.parcela_atual = 1
                 gasto.total_parcelas = 1
                 gasto.save()
@@ -442,6 +438,76 @@ def gasto_novo(request):
         form = GastoForm()
 
     return render(request, 'financas/gasto_form.html', {'form': form})
+
+# from dateutil.relativedelta import relativedelta
+# import uuid
+# from django.shortcuts import redirect, render
+# from django.contrib import messages
+
+# def gasto_novo(request):
+#     if request.method == 'POST':
+#         form = GastoForm(request.POST)
+#         if form.is_valid():
+#             gasto = form.save(commit=False)
+            
+#             parcela_atual = form.cleaned_data.get('parcela_atual') or 1
+#             total_parcelas = form.cleaned_data.get('total_parcelas') or 1
+
+#             if total_parcelas > 1:
+#                 grupo_id = uuid.uuid4()
+#                 data_base = gasto.data
+                
+#                 # O mês ativo atual (que veio do form ou do sistema)
+#                 mes_base = gasto.mes 
+
+#                 # Loop para criar as parcelas
+#                 for i in range(parcela_atual, total_parcelas + 1):
+#                     # Calcula a data do mês futuro
+#                     nova_data = data_base + relativedelta(months=(i - parcela_atual))
+                    
+#                     # Tenta encontrar o mês correspondente no banco
+#                     # (Supondo que seu model Mes tenha campos 'ano' e 'mes' ou algo assim)
+#                     try:
+#                         # Se o seu model Mes for só uma string tipo "Nov/2026", a busca seria diferente.
+#                         # Aqui tô assumindo que ele tem campos 'ano' e 'mes_numero' (1 a 12).
+#                         # AJUSTE ESSA LINHA ABAIXO CONFORME O SEU MODEL MES:
+#                         mes_parcela = Mes.objects.get(ano=nova_data.year, mes_numero=nova_data.month) 
+#                     except Mes.DoesNotExist:
+#                         # Se o mês não existir no banco, a gente pula ou cria. 
+#                         # O ideal é avisar o usuário.
+#                         messages.error(request, f"O mês {nova_data.strftime('%m/%Y')} não existe no sistema. Crie-o antes de parcelar.")
+#                         return redirect('gasto_novo') # Volta pro form
+
+#                     # Cria o gasto para aquele mês
+#                     novo_gasto = Gasto(
+#                         mes=mes_parcela, # O mês encontrado
+#                         descricao=gasto.descricao,
+#                         valor=gasto.valor, # Mantém o valor de R$ 128,62
+#                         data=nova_data,
+#                         categoria=gasto.categoria,
+#                         pessoa=gasto.pessoa,
+#                         forma_pagamento=gasto.forma_pagamento,
+#                         cartao=gasto.cartao,
+#                         parcela_atual=i,
+#                         total_parcelas=total_parcelas,
+#                         grupo_parcelas=grupo_id
+#                     )
+#                     novo_gasto.save()
+                
+#                 messages.success(request, f"Gasto parcelado em {total_parcelas}x com sucesso!")
+#                 return redirect('gasto_lista')
+            
+#             else:
+#                 # Se não for parcelado, salva normal
+#                 gasto.parcela_atual = 1
+#                 gasto.total_parcelas = 1
+#                 gasto.save()
+#                 messages.success(request, "Gasto cadastrado com sucesso!")
+#                 return redirect('gasto_lista')
+#     else:
+#         form = GastoForm()
+
+#     return render(request, 'financas/gasto_form.html', {'form': form})
 @login_required
 def gasto_criar(request):
     mes_ativo_id = request.session.get('mes_ativo_id')

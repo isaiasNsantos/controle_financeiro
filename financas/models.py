@@ -44,6 +44,7 @@ class Categoria(models.Model):
 
 #     nome = models.CharField(max_length=50)
 #     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default=TIPO_NAO_ESSENCIAL)
+#     limite_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 #     ativo = models.BooleanField(default=True)
 
 #     class Meta:
@@ -53,6 +54,7 @@ class Categoria(models.Model):
 
 #     def __str__(self):
 #         return f"{self.nome} ({self.get_tipo_display()})"
+#     return f"{self.nome} ({self.get_tipo_display()})"
 
 
 class FormaPagamento(models.Model):
@@ -104,54 +106,6 @@ class Receita(models.Model):
     def __str__(self):
         return f"{self.descricao} - R$ {self.valor}"
 
-# class Gasto(models.Model):
-#     mes = models.ForeignKey(Mes, on_delete=models.CASCADE, related_name='gastos')
-#     descricao = models.CharField(max_length=100)
-#     valor = models.DecimalField(max_digits=10, decimal_places=2)
-#     data = models.DateField()
-#     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='gastos')
-#     pessoa = models.ForeignKey(Pessoa, on_delete=models.PROTECT, related_name='gastos')
-#     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, related_name='gastos')
-    
-#     # NOVO CAMPO AQUI
-#     cartao = models.ForeignKey(Cartao, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
-
-#     class Meta:
-#         verbose_name = "Gasto"
-#         verbose_name_plural = "Gastos"
-#         ordering = ['-data']
-
-#     def __str__(self):
-#         return f"{self.descricao} - R$ {self.valor}"
-
-# class Cartao(models.Model):
-#     nome = models.CharField(max_length=50)
-#     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-#     ativo = models.BooleanField(default=True)
-
-#     class Meta:
-#         verbose_name = "Cartão"
-#         verbose_name_plural = "Cartões"
-#         ordering = ['nome']
-
-#     def __str__(self):
-#         return self.nome
-
-# ... (Pessoa, Categoria, FormaPagamento, Mes e Receita lá em cima)
-
-# 1. PRIMEIRO O CARTÃO
-# class Cartao(models.Model):
-#     nome = models.CharField(max_length=50)
-#     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-#     ativo = models.BooleanField(default=True)
-
-#     class Meta:
-#         verbose_name = "Cartão"
-#         verbose_name_plural = "Cartões"
-#         ordering = ['nome']
-
-#     def __str__(self):
-#         return self.nome
 class Cartao(models.Model):
     nome = models.CharField(max_length=50)
     limite = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -191,27 +145,7 @@ class Gasto(models.Model):
     def __str__(self):
         return f"{self.descricao} - R$ {self.valor}"
 
-# # 2. DEPOIS O GASTO
-# class Gasto(models.Model):
-#     mes = models.ForeignKey(Mes, on_delete=models.CASCADE, related_name='gastos')
-#     descricao = models.CharField(max_length=100)
-#     valor = models.DecimalField(max_digits=10, decimal_places=2)
-#     data = models.DateField()
-#     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='gastos')
-#     pessoa = models.ForeignKey(Pessoa, on_delete=models.PROTECT, related_name='gastos')
-#     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, related_name='gastos')
-    
-#     # O Cartão agora pode ser usado aqui porque já foi declarado lá em cima
-#     cartao = models.ForeignKey(Cartao, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
-
-#     class Meta:
-#         verbose_name = "Gasto"
-#         verbose_name_plural = "Gastos"
-#         ordering = ['-data']
-
-#     def __str__(self):
-#         return f"{self.descricao} - R$ {self.valor}"
-
+ 
 class Divida(models.Model):
     descricao = models.CharField(max_length=100)
     valor_total = models.DecimalField(max_digits=10, decimal_places=2)
