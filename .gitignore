@@ -20,3 +20,4 @@ __pycache__/
 *$py.class
 .DS_Store
 .gitignore
+HANDOFF.md
