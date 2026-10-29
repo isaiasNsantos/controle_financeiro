@@ -6,7 +6,7 @@
 {% block content %}
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
-        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .journal-bg { background-color: #e8f0e8; background-image: linear-gradient(#dce8dc 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
         .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
         .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
         .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
@@ -52,8 +52,9 @@
                                             <th style="width: 40px;" class="text-center">
                                                 <input type="checkbox" class="form-check-input" id="checkTodos" checked>
                                             </th>
-                                            <th>Data Compra</th>
+                                            <th>Data</th>
                                             <th>Descrição</th>
+                                            <th class="text-center">Parcela</th> <!-- NOVA COLUNA -->
                                             <th class="text-end">Valor</th>
                                         </tr>
                                     </thead>
@@ -62,12 +63,14 @@
                                             <tr class="linha-transacao" 
                                                 data-data="{{ t.data }}" 
                                                 data-descricao="{{ t.descricao }}" 
+                                                data-parcela="{{ t.parcela }}" 
                                                 data-valor="{{ t.valor }}">
                                                 <td class="text-center">
                                                     <input type="checkbox" class="form-check-input check-linha" checked>
                                                 </td>
                                                 <td>{{ t.data|date:"d/m/Y" }}</td>
                                                 <td class="fw-bold">{{ t.descricao }}</td>
+                                                <td class="text-center">{{ t.parcela|default:"-" }}</td>
                                                 <td class="text-end text-vermelho fw-bold">R$ {{ t.valor }}</td>
                                             </tr>
                                         {% endfor %}
@@ -145,15 +148,13 @@
                         const linha = cb.closest('.linha-transacao');
                         const data = linha.getAttribute('data-data');
                         const desc = linha.getAttribute('data-descricao');
+                        const parcela = linha.getAttribute('data-parcela');
                         const valor = linha.getAttribute('data-valor');
-                        
-                        // Pega o vencimento que veio da view (se tiver)
-                        const vencimento = "{{ transacoes.0.vencimento_fatura|default:'' }}";
 
                         container.innerHTML += `<input type="hidden" name="data[]" value="${data}">`;
                         container.innerHTML += `<input type="hidden" name="descricao[]" value="${desc}">`;
+                        container.innerHTML += `<input type="hidden" name="parcela[]" value="${parcela}">`;
                         container.innerHTML += `<input type="hidden" name="valor[]" value="${valor}">`;
-                        container.innerHTML += `<input type="hidden" name="vencimento[]" value="${vencimento}">`;
                     });
                 });
             }
