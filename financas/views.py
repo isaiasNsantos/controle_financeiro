@@ -1020,7 +1020,7 @@ def importar_fatura(request):
         messages.success(request, f'{salvos} transações importadas com sucesso!')
         return redirect('gasto_lista')
 
-    # 2. LER O PDF (A MÁGICA DO FATIAMENTO)
+    # 2. LER O PDF
     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
         mes_ativo_id = request.session.get('mes_ativo_id')
         if not mes_ativo_id:
@@ -1033,6 +1033,9 @@ def importar_fatura(request):
 
         try:
             with pdfplumber.open(pdf_file) as pdf:
+                texto_completo = "".join([page.extract_text() or "" for page in pdf.pages])
+                is_santander = "Detalhamento da Fatura" in texto_completo
+
                 for page in pdf.pages:
                     texto = page.extract_text()
                     if not texto:
@@ -1040,133 +1043,134 @@ def importar_fatura(request):
 
                     linhas = [l.strip() for l in texto.splitlines() if l.strip()]
                     
-                    secao_atual = None          
-                    dentro_detalhamento = False
+                    if is_santander:
+                        # --- BLOCO SANTANDER ---
+                        secao_atual = None          
+                        dentro_detalhamento = False
 
-                    # O Regex agora procura APENAS a data, a loja, a parcela e o PRIMEIRO valor
-                    padrao_item = re.compile(
-                        r'^(?:\d+\s+)?'                 # opcional: número da compra
-                        r'(\d{2}/\d{2})\s*'             # data
-                        r'(.+?)\s*'                     # descrição (não guloso)
-                        r'(?:(\d{2}/\d{2})\s*)?'        # opcional: parcela
-                        r'([\d\.]+,\d{2})'              # valor R$
-                    )
+                        padrao_item = re.compile(
+                            r'^(?:\d+\s+)?'                 
+                            r'(\d{2}/\d{2})\s*'             
+                            r'(.+?)\s*'                     
+                            r'(?:(\d{2}/\d{2})\s*)?'        
+                            r'([\d\.]+,\d{2})'              
+                        )
 
-                    for linha in linhas:
-                        if "Detalhamento da Fatura" in linha:
-                            dentro_detalhamento = True
-                            continue
-                        if not dentro_detalhamento:
-                            continue
+                        for linha in linhas:
+                            if "Detalhamento da Fatura" in linha:
+                                dentro_detalhamento = True
+                                continue
+                            if not dentro_detalhamento:
+                                continue
 
-                        linha_lower = linha.lower()
-                        
-                        # O SEGREDO: Apenas ignora a seção de créditos e pagamentos
-                        if "pagamento e demais" in linha_lower or "pagamento de fatura" in linha_lower:
-                            secao_atual = "ignorar"
-                            continue
+                            linha_lower = linha.lower()
+                            
+                            if "pagamento e demais" in linha_lower or "pagamento de fatura" in linha_lower:
+                                secao_atual = "ignorar"
+                                continue
 
-                        if linha_lower.startswith("parcelamentos"):
-                            secao_atual = "parcelamentos"
-                            continue
-                        if linha_lower.startswith("despesas"):
-                            secao_atual = "despesas"
-                            continue
-                        if linha_lower.startswith("valor total"):
-                            secao_atual = None
-                            continue
+                            if linha_lower.startswith("parcelamentos"):
+                                secao_atual = "parcelamentos"
+                                continue
+                            if linha_lower.startswith("despesas"):
+                                secao_atual = "despesas"
+                                continue
+                            if linha_lower.startswith("valor total"):
+                                secao_atual = None
+                                continue
 
-                        # Se estiver na seção correta, processa
-                        if secao_atual in ["parcelamentos", "despesas"]:
-                            m = padrao_item.match(linha)
-                            if m:
-                                data, descricao, parcela, valor_brl = m.groups()
-                                
+                            if secao_atual in ["parcelamentos", "despesas"]:
+                                m = padrao_item.match(linha)
+                                if m:
+                                    data, descricao, parcela, valor_brl = m.groups()
+                                    
+                                    try:
+                                        valor_limpo = valor_brl.replace('.', '').replace(',', '.')
+                                        valor = Decimal(valor_limpo)
+                                    except InvalidOperation:
+                                        continue
+
+                                    if valor <= 0:
+                                        valor = abs(valor)
+
+                                    dia, mes = data.split('/')
+                                    ano = mes_ativo.ano
+                                    if int(mes) > mes_ativo.mes:
+                                        ano = ano - 1
+
+                                    try:
+                                        data_gasto = date(ano, int(mes), int(dia))
+                                    except ValueError:
+                                        continue
+
+                                    descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
+                                    descricao_limpa = re.sub(r'\d{2}/\d{2}$', '', descricao_limpa).strip()
+
+                                    if not descricao_limpa:
+                                        continue
+
+                                    transacoes.append({
+                                        'data': data_gasto.isoformat(),
+                                        'descricao': descricao_limpa,
+                                        'parcela': parcela if parcela else "",
+                                        'valor': str(valor),
+                                    })
+                                continue
+                    
+                    else:
+                        # --- BLOCO NUBANK ---
+                        for linha in linhas:
+                            if " a " in linha or "Total" in linha or "Limite" in linha:
+                                continue
+
+                            match_nubank = re.search(
+                                r'(\d{2}\s[A-Z]{3})\s*(?:\d{4,6})?\s*(.*?)\s*R\$\s*([\d\.]+,\d{2})',
+                                linha
+                            )
+                            if match_nubank:
+                                data_str = match_nubank.group(1)
+                                descricao = match_nubank.group(2).strip()
+                                valor_str = match_nubank.group(3)
+
+                                if not descricao or descricao.startswith("Pagamento em"):
+                                    continue
+
                                 try:
-                                    valor_limpo = valor_brl.replace('.', '').replace(',', '.')
+                                    valor_limpo = valor_str.replace('.', '').replace(',', '.')
                                     valor = Decimal(valor_limpo)
                                 except InvalidOperation:
                                     continue
 
-                                if valor <= 0:
-                                    valor = abs(valor)
+                                meses = {
+                                    'JAN': 1, 'FEV': 2, 'MAR': 3, 'ABR': 4,
+                                    'MAI': 5, 'JUN': 6, 'JUL': 7, 'AGO': 8,
+                                    'SET': 9, 'OUT': 10, 'NOV': 11, 'DEZ': 12,
+                                }
+                                try:
+                                    dia, mes_abrev = data_str.split()
+                                    mes = meses.get(mes_abrev, 1)
+                                except ValueError:
+                                    continue
 
-                                dia, mes = data.split('/')
-                                ano = mes_ativo.ano
-                                if int(mes) > mes_ativo.mes:
+                                ano = datetime.now().year
+                                if mes > mes_ativo.mes:
                                     ano = ano - 1
 
                                 try:
-                                    data_gasto = date(ano, int(mes), int(dia))
+                                    data_gasto = date(ano, mes, int(dia))
                                 except ValueError:
                                     continue
 
                                 descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
-                                descricao_limpa = re.sub(r'\d{2}/\d{2}$', '', descricao_limpa).strip()
-
                                 if not descricao_limpa:
                                     continue
 
                                 transacoes.append({
                                     'data': data_gasto.isoformat(),
                                     'descricao': descricao_limpa,
-                                    'parcela': parcela if parcela else "",
+                                    'parcela': '',
                                     'valor': str(valor),
                                 })
-                            continue
-
-                        # --- PADRÃO NUBANK ---
-                        if " a " in linha or "Total" in linha or "Limite" in linha:
-                            continue
-
-                        match_nubank = re.search(
-                            r'(\d{2}\s[A-Z]{3})\s*(?:\d{4,6})?\s*(.*?)\s*R\$\s*([\d\.]+,\d{2})',
-                            linha
-                        )
-                        if match_nubank:
-                            data_str = match_nubank.group(1)
-                            descricao = match_nubank.group(2).strip()
-                            valor_str = match_nubank.group(3)
-
-                            if not descricao or descricao.startswith("Pagamento em"):
-                                continue
-
-                            try:
-                                valor_limpo = valor_str.replace('.', '').replace(',', '.')
-                                valor = Decimal(valor_limpo)
-                            except InvalidOperation:
-                                continue
-
-                            meses = {
-                                'JAN': 1, 'FEV': 2, 'MAR': 3, 'ABR': 4,
-                                'MAI': 5, 'JUN': 6, 'JUL': 7, 'AGO': 8,
-                                'SET': 9, 'OUT': 10, 'NOV': 11, 'DEZ': 12,
-                            }
-                            try:
-                                dia, mes_abrev = data_str.split()
-                                mes = meses.get(mes_abrev, 1)
-                            except ValueError:
-                                continue
-
-                            ano = datetime.now().year
-                            if mes > mes_ativo.mes:
-                                ano = ano - 1
-
-                            try:
-                                data_gasto = date(ano, mes, int(dia))
-                            except ValueError:
-                                continue
-
-                            descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
-                            if not descricao_limpa:
-                                continue
-
-                            transacoes.append({
-                                'data': data_gasto.isoformat(),
-                                'descricao': descricao_limpa,
-                                'parcela': '',
-                                'valor': str(valor),
-                            })
 
         except Exception as e:
             messages.error(request, f'Erro ao ler PDF: {e}')
@@ -1188,6 +1192,282 @@ def importar_fatura(request):
         })
 
     return render(request, 'financas/importar_fatura.html')
+
+# @login_required
+# def importar_fatura(request):
+#     # 1. SALVAR NO BANCO
+#     if request.method == 'POST' and 'salvar_importacao' in request.POST:
+#         mes_ativo_id = request.session.get('mes_ativo_id')
+#         if not mes_ativo_id:
+#             messages.error(request, 'Nenhum mês ativo selecionado.')
+#             return redirect('mes_lista')
+
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id)
+#         categoria_id = request.POST.get('categoria')
+#         pessoa_id = request.POST.get('pessoa')
+#         cartao_id = request.POST.get('cartao')
+
+#         datas = request.POST.getlist('data[]')
+#         descricoes = request.POST.getlist('descricao[]')
+#         valores = request.POST.getlist('valor[]')
+#         parcelas = request.POST.getlist('parcela[]')
+
+#         if not (categoria_id and pessoa_id and cartao_id and datas):
+#             messages.error(request, 'Preencha todos os campos e selecione pelo menos um gasto.')
+#             return redirect('importar_fatura')
+
+#         categoria = Categoria.objects.get(id=categoria_id)
+#         pessoa = Pessoa.objects.get(id=pessoa_id)
+#         cartao = Cartao.objects.get(id=cartao_id)
+
+#         forma_credito, _ = FormaPagamento.objects.get_or_create(nome="Cartão de Crédito")
+#         salvos = 0
+
+#         for i in range(len(datas)):
+#             descricao_original = descricoes[i]
+#             descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao_original).strip()
+
+#             try:
+#                 valor = Decimal(str(valores[i]))
+#             except InvalidOperation:
+#                 continue
+
+#             try:
+#                 data_gasto = datetime.strptime(datas[i], '%Y-%m-%d').date()
+#             except ValueError:
+#                 continue
+
+#             parcela_info = parcelas[i] if i < len(parcelas) else ""
+#             match_parcela = re.search(r'(\d+)/(\d+)', parcela_info)
+
+#             if not match_parcela:
+#                 match_parcela = re.search(r'Parcela (\d+)/(\d+)', descricao_limpa)
+
+#             if match_parcela:
+#                 parcela_atual = int(match_parcela.group(1))
+#                 total_parcelas = int(match_parcela.group(2))
+#                 parcelas_restantes = total_parcelas - parcela_atual
+
+#                 nome_base = re.sub(r'Parcela \d+/\d+', '', descricao_limpa).strip()
+#                 nome_base = re.sub(r'\d{2}/\d{2}$', '', nome_base).strip()
+
+#                 Gasto.objects.create(
+#                     mes=mes_ativo,
+#                     descricao=f"{nome_base} ({parcela_atual}/{total_parcelas})",
+#                     valor=valor,
+#                     data=data_gasto,
+#                     categoria=categoria,
+#                     pessoa=pessoa,
+#                     forma_pagamento=forma_credito,
+#                     cartao=cartao,
+#                 )
+
+#                 for j in range(1, parcelas_restantes + 1):
+#                     mes_futuro_num = mes_ativo.mes + j
+#                     ano_futuro = mes_ativo.ano
+#                     if mes_futuro_num > 12:
+#                         mes_futuro_num -= 12
+#                         ano_futuro += 1
+
+#                     mes_futuro, _ = Mes.objects.get_or_create(
+#                         ano=ano_futuro, mes=mes_futuro_num
+#                     )
+#                     nova_data = data_gasto.replace(year=ano_futuro, month=mes_futuro_num)
+
+#                     Gasto.objects.create(
+#                         mes=mes_futuro,
+#                         descricao=f"{nome_base} ({parcela_atual + j}/{total_parcelas})",
+#                         valor=valor,
+#                         data=nova_data,
+#                         categoria=categoria,
+#                         pessoa=pessoa,
+#                         forma_pagamento=forma_credito,
+#                         cartao=cartao,
+#                     )
+#             else:
+#                 Gasto.objects.create(
+#                     mes=mes_ativo,
+#                     descricao=descricao_limpa,
+#                     valor=valor,
+#                     data=data_gasto,
+#                     categoria=categoria,
+#                     pessoa=pessoa,
+#                     forma_pagamento=forma_credito,
+#                     cartao=cartao,
+#                 )
+#             salvos += 1
+
+#         messages.success(request, f'{salvos} transações importadas com sucesso!')
+#         return redirect('gasto_lista')
+
+#     # 2. LER O PDF (A MÁGICA DO FATIAMENTO)
+#     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
+#         mes_ativo_id = request.session.get('mes_ativo_id')
+#         if not mes_ativo_id:
+#             messages.error(request, 'Nenhum mês ativo selecionado.')
+#             return redirect('mes_lista')
+#         mes_ativo = Mes.objects.get(id=mes_ativo_id)
+
+#         pdf_file = request.FILES.get('arquivo_pdf')
+#         transacoes = []
+
+#         try:
+#             with pdfplumber.open(pdf_file) as pdf:
+#                 for page in pdf.pages:
+#                     texto = page.extract_text()
+#                     if not texto:
+#                         continue
+
+#                     linhas = [l.strip() for l in texto.splitlines() if l.strip()]
+                    
+#                     secao_atual = None          
+#                     dentro_detalhamento = False
+
+#                     # O Regex agora procura APENAS a data, a loja, a parcela e o PRIMEIRO valor
+#                     padrao_item = re.compile(
+#                         r'^(?:\d+\s+)?'                 # opcional: número da compra
+#                         r'(\d{2}/\d{2})\s*'             # data
+#                         r'(.+?)\s*'                     # descrição (não guloso)
+#                         r'(?:(\d{2}/\d{2})\s*)?'        # opcional: parcela
+#                         r'([\d\.]+,\d{2})'              # valor R$
+#                     )
+
+#                     for linha in linhas:
+#                         if "Detalhamento da Fatura" in linha:
+#                             dentro_detalhamento = True
+#                             continue
+#                         if not dentro_detalhamento:
+#                             continue
+
+#                         linha_lower = linha.lower()
+                        
+#                         # O SEGREDO: Apenas ignora a seção de créditos e pagamentos
+#                         if "pagamento e demais" in linha_lower or "pagamento de fatura" in linha_lower:
+#                             secao_atual = "ignorar"
+#                             continue
+
+#                         if linha_lower.startswith("parcelamentos"):
+#                             secao_atual = "parcelamentos"
+#                             continue
+#                         if linha_lower.startswith("despesas"):
+#                             secao_atual = "despesas"
+#                             continue
+#                         if linha_lower.startswith("valor total"):
+#                             secao_atual = None
+#                             continue
+
+#                         # Se estiver na seção correta, processa
+#                         if secao_atual in ["parcelamentos", "despesas"]:
+#                             m = padrao_item.match(linha)
+#                             if m:
+#                                 data, descricao, parcela, valor_brl = m.groups()
+                                
+#                                 try:
+#                                     valor_limpo = valor_brl.replace('.', '').replace(',', '.')
+#                                     valor = Decimal(valor_limpo)
+#                                 except InvalidOperation:
+#                                     continue
+
+#                                 if valor <= 0:
+#                                     valor = abs(valor)
+
+#                                 dia, mes = data.split('/')
+#                                 ano = mes_ativo.ano
+#                                 if int(mes) > mes_ativo.mes:
+#                                     ano = ano - 1
+
+#                                 try:
+#                                     data_gasto = date(ano, int(mes), int(dia))
+#                                 except ValueError:
+#                                     continue
+
+#                                 descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
+#                                 descricao_limpa = re.sub(r'\d{2}/\d{2}$', '', descricao_limpa).strip()
+
+#                                 if not descricao_limpa:
+#                                     continue
+
+#                                 transacoes.append({
+#                                     'data': data_gasto.isoformat(),
+#                                     'descricao': descricao_limpa,
+#                                     'parcela': parcela if parcela else "",
+#                                     'valor': str(valor),
+#                                 })
+#                             continue
+
+#                         # --- PADRÃO NUBANK ---
+#                         if " a " in linha or "Total" in linha or "Limite" in linha:
+#                             continue
+
+#                         match_nubank = re.search(
+#                             r'(\d{2}\s[A-Z]{3})\s*(?:\d{4,6})?\s*(.*?)\s*R\$\s*([\d\.]+,\d{2})',
+#                             linha
+#                         )
+#                         if match_nubank:
+#                             data_str = match_nubank.group(1)
+#                             descricao = match_nubank.group(2).strip()
+#                             valor_str = match_nubank.group(3)
+
+#                             if not descricao or descricao.startswith("Pagamento em"):
+#                                 continue
+
+#                             try:
+#                                 valor_limpo = valor_str.replace('.', '').replace(',', '.')
+#                                 valor = Decimal(valor_limpo)
+#                             except InvalidOperation:
+#                                 continue
+
+#                             meses = {
+#                                 'JAN': 1, 'FEV': 2, 'MAR': 3, 'ABR': 4,
+#                                 'MAI': 5, 'JUN': 6, 'JUL': 7, 'AGO': 8,
+#                                 'SET': 9, 'OUT': 10, 'NOV': 11, 'DEZ': 12,
+#                             }
+#                             try:
+#                                 dia, mes_abrev = data_str.split()
+#                                 mes = meses.get(mes_abrev, 1)
+#                             except ValueError:
+#                                 continue
+
+#                             ano = datetime.now().year
+#                             if mes > mes_ativo.mes:
+#                                 ano = ano - 1
+
+#                             try:
+#                                 data_gasto = date(ano, mes, int(dia))
+#                             except ValueError:
+#                                 continue
+
+#                             descricao_limpa = re.sub(r'^[•\s\d]+', '', descricao).strip()
+#                             if not descricao_limpa:
+#                                 continue
+
+#                             transacoes.append({
+#                                 'data': data_gasto.isoformat(),
+#                                 'descricao': descricao_limpa,
+#                                 'parcela': '',
+#                                 'valor': str(valor),
+#                             })
+
+#         except Exception as e:
+#             messages.error(request, f'Erro ao ler PDF: {e}')
+#             return redirect('importar_fatura')
+
+#         if not transacoes:
+#             messages.warning(request, 'Nenhuma transação válida encontrada no PDF.')
+
+#         categorias = Categoria.objects.filter(ativo=True)
+#         pessoas = Pessoa.objects.filter(ativo=True)
+#         cartoes = Cartao.objects.filter(ativo=True)
+
+#         return render(request, 'financas/importar_fatura.html', {
+#             'transacoes': transacoes,
+#             'total': sum(Decimal(t['valor']) for t in transacoes),
+#             'categorias': categorias,
+#             'pessoas': pessoas,
+#             'cartoes': cartoes,
+#         })
+
+#     return render(request, 'financas/importar_fatura.html')
 
 # @login_required
 # def importar_fatura(request):
