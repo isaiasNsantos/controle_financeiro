@@ -19,5 +19,3 @@ __pycache__/
 *.py[cod]
 *$py.class
 .DS_Store
-.gitignore
-HANDOFF.md
