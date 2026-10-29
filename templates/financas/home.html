@@ -19,7 +19,7 @@
         .btn-fatura { background: rgba(255, 255, 255, 0.7); color: #111; border: 2px solid #222; border-radius: 4px; padding: 5px; text-align: center; text-decoration: none; font-size: 0.75rem; transition: 0.2s; box-shadow: 2px 2px 0px #222; }
         .btn-fatura:hover { background: white; color: #111; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222;}
 
-        /* CONTAS NORMAIS (Agora sem cor de fundo fixa no CSS, pois vem do banco) */
+        /* CONTAS NORMAIS */
         .card-vencimento { color: #222; border: 2px solid #222; border-radius: 6px; padding: 15px; box-shadow: 4px 4px 0px #222; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .card-vencimento .label { font-size: 0.65rem; text-transform: uppercase; color: #475569; }
         .card-vencimento .valor { font-size: 1.2rem; font-family: 'Patrick Hand', cursive; margin-bottom: 5px;}
@@ -28,10 +28,10 @@
 
         /* ALERTA E BOTÕES DE NAVEGAÇÃO */
         .alerta-atraso { background-color: #f7b2bd; border: 2px solid #222; border-radius: 6px; padding: 12px 15px; margin-bottom: 20px; box-shadow: 4px 4px 0px #222; display: flex; justify-content: space-between; align-items: center; }
-        .btn-nav { background-color: white; color: #222; border: 2px solid #222; border-radius: 4px; padding: 4px 10px; text-decoration: none; box-shadow: 2px 2px 0px #222; transition: 0.1s; font-size: 0.9rem;}
+        .btn-nav { background-color: white; color: #222; border: 2px solid #222; border-radius: 4px; padding: 4px 10px; text-decoration: none; box-shadow: 2px 2px 0px #222; transition: 0.1s; font-size: 0.9rem; cursor: pointer;}
         .btn-nav:hover { background-color: #f1f5f9; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222; color: #222;}
 
-        /* BOTÃO NOVO GASTO */
+        /* BOTÃO NOVO GASTO E OLHINHO */
         .btn-novo-gasto { background-color: #f7b2bd; color: #222; border: 2px solid #222; border-radius: 4px; padding: 6px 15px; text-decoration: none; box-shadow: 2px 2px 0px #222; transition: 0.1s; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px;}
         .btn-novo-gasto:hover { background-color: #f28a9a; transform: translate(1px, 1px); box-shadow: 1px 1px 0px #222; color: #222;}
 
@@ -66,11 +66,19 @@
         .fc-toolbar-title { font-family: 'Architects Daughter', cursive; font-size: 1.1rem !important; }
         .fc-button-primary { background-color: #d1b3e2 !important; border: 2px solid #222 !important; color: #222 !important; font-family: 'Patrick Hand', cursive; box-shadow: 2px 2px 0px #222; padding: 2px 8px !important; font-size: 0.8rem !important; }
         .fc-event { border-radius: 2px; font-family: 'Patrick Hand', cursive; font-size: 0.65rem; padding: 1px 2px; cursor: pointer; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* --- EFEITO DE DESFOQUE (BLUR) DO MODO PRIVACIDADE --- */
+        .modo-privado .valor-privado {
+            filter: blur(6px);
+            user-select: none;
+            transition: filter 0.3s ease;
+            cursor: default;
+        }
     </style>
 
     <div class="journal-bg">
         
-        <!-- CABEÇALHO COM NAVEGAÇÃO E BOTÃO -->
+        <!-- CABEÇALHO COM NAVEGAÇÃO E BOTÕES -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
             <h3 style="font-family: 'Architects Daughter'; margin: 0;">Agenda de Contas</h3>
             
@@ -84,6 +92,11 @@
                 <button class="btn-novo-gasto ms-md-3" type="button" data-bs-toggle="collapse" data-bs-target="#formNovoGastoHome">
                     <i class="bi bi-plus-circle"></i> Novo Gasto
                 </button>
+
+                <!-- BOTÃO DO OLHINHO -->
+                <button id="btn-privacidade" class="btn-nav ms-md-2" type="button" title="Ocultar/Mostrar valores">
+                    <i class="bi bi-eye-slash" id="icone-olho"></i>
+                </button>
             </div>
         </div>
 
@@ -91,17 +104,17 @@
         <div class="painel-resumo">
             <div>
                 <div class="label-mini">Gastos</div>
-                <div class="valor-resumo" style="color: #dc2626;">R$ {{ total_geral_gastos|moeda }}</div>
+                <div class="valor-resumo valor-privado" style="color: #dc2626;">R$ {{ total_geral_gastos|moeda }}</div>
             </div>
             <div style="border-left: 1px solid #cbd5e1; height: 30px;"></div>
             <div>
                 <div class="label-mini">Receitas</div>
-                <div class="valor-resumo" style="color: #0ea5e9;">R$ {{ total_geral_receitas|moeda }}</div>
+                <div class="valor-resumo valor-privado" style="color: #0ea5e9;">R$ {{ total_geral_receitas|moeda }}</div>
             </div>
             <div style="border-left: 1px solid #cbd5e1; height: 30px;"></div>
             <div>
                 <div class="label-mini">Saldo Livre</div>
-                <div class="valor-resumo" style="color: {% if saldo_geral >= 0 %}#16a34a{% else %}#dc2626{% endif %};">R$ {{ saldo_geral|moeda }}</div>
+                <div class="valor-resumo valor-privado" style="color: {% if saldo_geral >= 0 %}#16a34a{% else %}#dc2626{% endif %};">R$ {{ saldo_geral|moeda }}</div>
             </div>
         </div>
 
@@ -161,7 +174,7 @@
         {% if atrasadas %}
             <div class="alerta-atraso">
                 <div><i class="bi bi-exclamation-triangle"></i> Você tem {{ atrasadas|length }} conta(s) atrasada(s) neste mês.</div>
-                <div class="fs-5">R$ {{ total_atrasado|moeda }}</div>
+                <div class="fs-5 valor-privado">R$ {{ total_atrasado|moeda }}</div>
             </div>
         {% endif %}
 
@@ -173,7 +186,7 @@
                     <div class="card-fatura" style="background: linear-gradient(135deg, {{ c.cartao.cor|default:'#e9d5ff' }}, {{ c.cartao.cor|default:'#e9d5ff' }}dd);">
                         <div>
                             <div class="nome-cartao"><i class="bi bi-credit-card"></i> {{ c.cartao.nome }}</div>
-                            <div class="valor-fatura">R$ {{ c.total|moeda }}</div>
+                            <div class="valor-fatura valor-privado">R$ {{ c.total|moeda }}</div>
                             <div class="vencimento">Vence aprox. {{ c.vencimento|date:"d/m" }}</div>
                         </div>
                         <a href="{% url 'gasto_lista' %}" class="btn-fatura mt-1">Ver Fatura</a>
@@ -195,7 +208,7 @@
                             <div class="card-vencimento" style="background-color: {{ g.categoria.cor|default:'#a8c8f0' }};">
                                 <div>
                                     <div class="label">Vence {{ g.data|date:"d/m" }}</div>
-                                    <div class="valor">R$ {{ g.valor|moeda }}</div>
+                                    <div class="valor valor-privado">R$ {{ g.valor|moeda }}</div>
                                     <div class="desc text-truncate" title="{{ g.descricao }}">
                                         {{ g.descricao }}
                                     </div>
@@ -256,7 +269,7 @@
                                                 <span class="badge" style="background:#a8c8f0; border:1px solid #222; color:#222;">{{ g.categoria.nome }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end pe-3" style="color: #dc2626 !important;">R$ {{ g.valor|moeda }}</td>
+                                        <td class="text-end pe-3 valor-privado" style="color: #dc2626 !important;">R$ {{ g.valor|moeda }}</td>
                                     </tr>
                                 {% empty %}
                                     <tr>
@@ -271,10 +284,48 @@
         </div>
     </div>
 
-    <!-- SCRIPTS DO CALENDÁRIO -->
+    <!-- SCRIPTS DO CALENDÁRIO E PRIVACIDADE -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // === LÓGICA DO OLHINHO DE PRIVACIDADE ===
+            const btnPrivacidade = document.getElementById('btn-privacidade');
+            const iconeOlho = document.getElementById('icone-olho');
+            
+            function aplicarPrivacidade(ocultar) {
+                if (ocultar) {
+                    document.body.classList.add('modo-privado');
+                    iconeOlho.classList.remove('bi-eye-slash');
+                    iconeOlho.classList.add('bi-eye');
+                } else {
+                    document.body.classList.remove('modo-privado');
+                    iconeOlho.classList.remove('bi-eye');
+                    iconeOlho.classList.add('bi-eye-slash');
+                }
+            }
+
+            // SE NÃO TIVER NADA SALVO, ELE ENTRA NO MODO PRIVADO (true)
+            const privacidadeAtiva = localStorage.getItem('privacidade');
+            
+            if (privacidadeAtiva === null) {
+                // Se é a primeira vez que abre, ativa o privado
+                localStorage.setItem('privacidade', 'true');
+                aplicarPrivacidade(true);
+            } else {
+                aplicarPrivacidade(privacidadeAtiva === 'true');
+            }
+
+            if (btnPrivacidade) {
+                btnPrivacidade.addEventListener('click', function() {
+                    const estaOculto = localStorage.getItem('privacidade') === 'true';
+                    const novoEstado = !estaOculto;
+                    
+                    localStorage.setItem('privacidade', novoEstado);
+                    aplicarPrivacidade(novoEstado);
+                });
+            }
+
+            // === LÓGICA DO CALENDÁRIO ===
             var calendarEl = document.getElementById('calendario');
             var mesAtivo = "{{ mes_ativo.ano }}-{{ mes_ativo.mes|stringformat:'02d' }}-01";
             
@@ -290,7 +341,12 @@
                 events: {{ eventos_json|safe }}, 
                 eventDisplay: 'block',
                 eventClick: function(info) {
-                    alert('Gasto: ' + info.event.title + '\nData: ' + info.event.start.toLocaleDateString('pt-BR'));
+                    const estaOculto = localStorage.getItem('privacidade') === 'true';
+                    if (estaOculto) {
+                        alert('Evento: ' + info.event.title + '\nData: ' + info.event.start.toLocaleDateString('pt-BR'));
+                    } else {
+                        alert('Gasto: ' + info.event.title + '\nData: ' + info.event.start.toLocaleDateString('pt-BR'));
+                    }
                 },
                 height: 'auto',
                 buttonText: {
