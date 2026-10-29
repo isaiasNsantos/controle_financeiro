@@ -3,7 +3,6 @@ import pdfplumber
 import re
 import json
 from datetime import datetime, date
-from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -23,6 +22,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from .forms import PerfilForm, AlterarSenhaForm
 from .models import Perfil
+from decimal import Decimal, InvalidOperation
  
 # ==========================================
 # PESSOAS
@@ -444,75 +444,7 @@ def gasto_novo(request):
 
     return render(request, 'financas/gasto_form.html', {'form': form})
 
-# from dateutil.relativedelta import relativedelta
-# import uuid
-# from django.shortcuts import redirect, render
-# from django.contrib import messages
 
-# def gasto_novo(request):
-#     if request.method == 'POST':
-#         form = GastoForm(request.POST)
-#         if form.is_valid():
-#             gasto = form.save(commit=False)
-            
-#             parcela_atual = form.cleaned_data.get('parcela_atual') or 1
-#             total_parcelas = form.cleaned_data.get('total_parcelas') or 1
-
-#             if total_parcelas > 1:
-#                 grupo_id = uuid.uuid4()
-#                 data_base = gasto.data
-                
-#                 # O mês ativo atual (que veio do form ou do sistema)
-#                 mes_base = gasto.mes 
-
-#                 # Loop para criar as parcelas
-#                 for i in range(parcela_atual, total_parcelas + 1):
-#                     # Calcula a data do mês futuro
-#                     nova_data = data_base + relativedelta(months=(i - parcela_atual))
-                    
-#                     # Tenta encontrar o mês correspondente no banco
-#                     # (Supondo que seu model Mes tenha campos 'ano' e 'mes' ou algo assim)
-#                     try:
-#                         # Se o seu model Mes for só uma string tipo "Nov/2026", a busca seria diferente.
-#                         # Aqui tô assumindo que ele tem campos 'ano' e 'mes_numero' (1 a 12).
-#                         # AJUSTE ESSA LINHA ABAIXO CONFORME O SEU MODEL MES:
-#                         mes_parcela = Mes.objects.get(ano=nova_data.year, mes_numero=nova_data.month) 
-#                     except Mes.DoesNotExist:
-#                         # Se o mês não existir no banco, a gente pula ou cria. 
-#                         # O ideal é avisar o usuário.
-#                         messages.error(request, f"O mês {nova_data.strftime('%m/%Y')} não existe no sistema. Crie-o antes de parcelar.")
-#                         return redirect('gasto_novo') # Volta pro form
-
-#                     # Cria o gasto para aquele mês
-#                     novo_gasto = Gasto(
-#                         mes=mes_parcela, # O mês encontrado
-#                         descricao=gasto.descricao,
-#                         valor=gasto.valor, # Mantém o valor de R$ 128,62
-#                         data=nova_data,
-#                         categoria=gasto.categoria,
-#                         pessoa=gasto.pessoa,
-#                         forma_pagamento=gasto.forma_pagamento,
-#                         cartao=gasto.cartao,
-#                         parcela_atual=i,
-#                         total_parcelas=total_parcelas,
-#                         grupo_parcelas=grupo_id
-#                     )
-#                     novo_gasto.save()
-                
-#                 messages.success(request, f"Gasto parcelado em {total_parcelas}x com sucesso!")
-#                 return redirect('gasto_lista')
-            
-#             else:
-#                 # Se não for parcelado, salva normal
-#                 gasto.parcela_atual = 1
-#                 gasto.total_parcelas = 1
-#                 gasto.save()
-#                 messages.success(request, "Gasto cadastrado com sucesso!")
-#                 return redirect('gasto_lista')
-#     else:
-#         form = GastoForm()
-
-#     return render(request, 'financas/gasto_form.html', {'form': form})
 @login_required
 def gasto_criar(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -780,139 +712,7 @@ def dashboard(request):
         'grafico_labels': grafico_labels,
         'grafico_valores': grafico_valores,
     })
-# @login_required
-# def dashboard(request):
-#     mes_ativo_id = request.session.get('mes_ativo_id')
-#     if not mes_ativo_id:
-#         return render(request, 'financas/dashboard.html', {'sem_mes_ativo': True})
 
-#     mes_ativo = Mes.objects.get(id=mes_ativo_id)
-
-#     # Totais
-#     total_receitas = Receita.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-#     total_gastos = Gasto.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-#     verba = total_receitas - total_gastos
-
-#     # Alerta
-#     if total_receitas == 0:
-#         alerta = 'sem_receita'
-#     elif verba < 0:
-#         alerta = 'estourado'
-#     elif verba < (total_receitas * Decimal('0.10')):
-#         alerta = 'apertado'
-#     else:
-#         alerta = 'ok'
-
-#     # 50-30-20
-#     gastos_essenciais = Gasto.objects.filter(
-#         mes=mes_ativo, categoria__tipo='E'
-#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#     gastos_nao_essenciais = Gasto.objects.filter(
-#         mes=mes_ativo, categoria__tipo='N'
-#     ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#     if total_receitas > 0:
-#         pct_essenciais = float((gastos_essenciais / total_receitas) * 100)
-#         pct_nao_essenciais = float((gastos_nao_essenciais / total_receitas) * 100)
-#         pct_sobra = float((verba / total_receitas) * 100)
-#     else:
-#         pct_essenciais = 0
-#         pct_nao_essenciais = 0
-#         pct_sobra = 0
-
-#     # Orçamentos por categoria
-#     categorias_com_limite = Categoria.objects.filter(
-#         ativo=True, limite_mensal__isnull=False
-#     ).exclude(limite_mensal=0)
-
-#     orcamentos = []
-#     for cat in categorias_com_limite:
-#         gasto_cat = Gasto.objects.filter(
-#             mes=mes_ativo, categoria=cat
-#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-#         pct_usado = float((gasto_cat / cat.limite_mensal) * 100) if cat.limite_mensal > 0 else 0
-#         restante = cat.limite_mensal - gasto_cat
-
-#         if pct_usado > 100:
-#             cor = 'danger'
-#         elif pct_usado >= 70:
-#             cor = 'warning'
-#         else:
-#             cor = 'success'
-
-#         orcamentos.append({
-#             'categoria': cat,
-#             'gasto': gasto_cat,
-#             'limite': cat.limite_mensal,
-#             'restante': restante,
-#             'pct_usado': pct_usado,
-#             'cor': cor,
-#         })
-
-#     # --- CARTÕES ---
-#     cartoes_ativos = Cartao.objects.filter(ativo=True)
-#     resumo_cartoes = []
-    
-#     for c in cartoes_ativos:
-#         total_cartao = Gasto.objects.filter(
-#             mes=mes_ativo, cartao=c
-#         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-        
-#         resumo_cartoes.append({
-#             'cartao': c,
-#             'total_mes': total_cartao
-#         })
-
-#     # Últimos 5 lançamentos
-#     ultimas_receitas = Receita.objects.filter(mes=mes_ativo).order_by('-id')[:5]
-#     ultimos_gastos = Gasto.objects.filter(mes=mes_ativo).order_by('-id')[:5]
-
-#     # --- DADOS PARA O GRÁFICO (GASTOS POR CATEGORIA) ---
-#     gastos_por_categoria = Gasto.objects.filter(mes=mes_ativo).values('categoria__nome').annotate(
-#         total=Sum('valor')
-#     ).order_by('-total')
-
-#     grafico_labels = [item['categoria__nome'] for item in gastos_por_categoria]
-#     grafico_valores = [float(item['total']) for item in gastos_por_categoria]
-
-#     return render(request, 'financas/dashboard.html', {
-#         'sem_mes_ativo': False,
-#         'mes_ativo': mes_ativo,
-#         'total_receitas': total_receitas,
-#         'total_gastos': total_gastos,
-#         'verba': verba,
-#         'alerta': alerta,
-#         'gastos_essenciais': gastos_essenciais,
-#         'gastos_nao_essenciais': gastos_nao_essenciais,
-#         'pct_essenciais': pct_essenciais,
-#         'pct_nao_essenciais': pct_nao_essenciais,
-#         'pct_sobra': pct_sobra,
-#         'orcamentos': orcamentos,
-#         'resumo_cartoes': resumo_cartoes,
-#         'ultimas_receitas': ultimas_receitas,
-#         'ultimos_gastos': ultimos_gastos,
-#         'grafico_labels': grafico_labels,
-#         'grafico_valores': grafico_valores,
-#     })
-
-# ==========================================
-# IMPORTAÇÃO DE FATURA
-# ==========================================
-# IMPORTAÇÃO DE FATURA
-# ==========================================
-
-# ==========================================
-# IMPORTAÇÃO DE FATURA
-
-# ==========================================
-# IMPORTAÇÃO DE FATURA
-# ==========================================
-
-# ==========================================
-# IMPORTAÇÃO DE FATURA
-# ==========================================
 @login_required
 def importar_fatura(request):
     # 1. SALVAR NO BANCO
