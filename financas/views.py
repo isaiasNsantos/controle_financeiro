@@ -2768,37 +2768,51 @@ def exportar_relatorio(request):
 from .forms import GastoForm
 @login_required
 def home(request):
-    # 1. FORÇA O MÊS ATUAL: Pega o ano e mês de hoje
     hoje = date.today()
     
-    # Verifica se o usuário está tentando navegar (Anterior/Próximo)
+    # Se o usuário clicou em Anterior/Próximo, a gente respeita
     ano_get = request.GET.get('ano')
     mes_get = request.GET.get('mes')
 
     if ano_get and mes_get:
-        # Se ele clicou em navegar, respeita a escolha dele
         ano_base = int(ano_get)
         mes_base = int(mes_get)
     else:
-        # Se ele só abriu o app, força o mês atual
-        ano_base = hoje.year
-        mes_base = hoje.month
-
-    # Tenta achar o mês exibido no banco. Se não existir, usa o último mês cadastrado.
-    mes_exibido = Mes.objects.filter(ano=ano_base, mes=mes_base).first()
-    
-    if not mes_exibido:
-        # Se o mês atual não existir, pega o último mês do banco como fallback
-        mes_exibido = Mes.objects.order_by('-ano', '-mes').first()
-        if not mes_exibido:
-            # Se o banco tiver 100% vazio, cria o mês atual
-            mes_exibido, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+        # Se não clicou, a regra é: Achar o mês de HOJE. 
+        # Se hoje não existir, pega o mês mais próximo (para frente) que esteja aberto.
         
-        # Atualiza as variáveis base para o mês que foi encontrado
+        mes_exibido = None
+        
+        # 1. Tenta achar o mês exato de hoje no banco
+        mes_exibido = Mes.objects.filter(ano=hoje.year, mes=hoje.month, fechado=False).first()
+        
+        # 2. Se não achou (ou tá fechado), busca o próximo mês que está aberto
+        if not mes_exibido:
+            mes_exibido = Mes.objects.filter(fechado=False).order_by('ano', 'mes').filter(
+                models.Q(ano__gt=hoje.year) | models.Q(ano=hoje.year, mes__gte=hoje.month)
+            ).first()
+            
+        # 3. Se ainda não achou, pega qualquer um que esteja aberto
+        if not mes_exibido:
+            mes_exibido = Mes.objects.filter(fechado=False).order_by('-ano', '-mes').first()
+
+        # 4. Se o banco estiver zerado, cria o mês atual
+        if not mes_exibido:
+            mes_exibido, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+
         ano_base = mes_exibido.ano
         mes_base = mes_exibido.mes
 
-    # Atualiza a sessão com o mês exibido (para manter consistência nas outras telas)
+    # Se o mês que ele tentou navegar não existir, a gente usa o da sessão
+    mes_exibido = Mes.objects.filter(ano=ano_base, mes=mes_base).first()
+    if not mes_exibido:
+        mes_exibido = Mes.objects.filter(id=request.session.get('mes_ativo_id')).first()
+        if not mes_exibido:
+            mes_exibido, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+        ano_base = mes_exibido.ano
+        mes_base = mes_exibido.mes
+
+    # Salva na sessão para as outras telas seguirem
     request.session['mes_ativo_id'] = mes_exibido.id
 
     data_atual = date(ano_base, mes_base, 1)
@@ -2874,7 +2888,6 @@ def home(request):
 
     eventos_json = json.dumps(eventos_calendario)
 
-    # Formulário com a data do mês visualizado
     form_gasto = GastoForm(initial={'data': date(ano_base, mes_base, 1)})
 
     return render(request, 'financas/home.html', {
