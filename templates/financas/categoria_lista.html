@@ -14,6 +14,7 @@
         .btn-journal-danger:hover { background: #f28a9a; }
         .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
         .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+        .color-box { width: 25px; height: 25px; border: 2px solid #222; border-radius: 4px; display: inline-block; vertical-align: middle; }
     </style>
 
     <div class="journal-bg">
@@ -27,6 +28,13 @@
                         <div class="mb-2"><label class="form-label fw-bold">Nome</label>{{ form.nome }}</div>
                         <div class="mb-2"><label class="form-label fw-bold">Tipo</label>{{ form.tipo }}</div>
                         <div class="mb-2"><label class="form-label fw-bold">Limite (R$)</label>{{ form.limite_mensal }}</div>
+                        
+                        <!-- CAMPO DE COR -->
+                        <div class="mb-2 d-flex align-items-center gap-2">
+                            <label class="form-label fw-bold mb-0">Cor da Categoria:</label>
+                            {{ form.cor }}
+                        </div>
+                        
                         <div class="mb-3 form-check">{{ form.ativo }}<label class="form-check-label">Ativo</label></div>
                         <button type="submit" class="btn btn-journal w-100">Salvar</button>
                     </form>
@@ -40,11 +48,14 @@
                         <div class="table-responsive">
                             <table class="table table-hover table-journal align-middle mb-0">
                                 <thead>
-                                    <tr><th>Nome</th><th>Tipo</th><th>Limite</th><th>Ações</th></tr>
+                                    <tr><th>Cor</th><th>Nome</th><th>Tipo</th><th>Limite</th><th>Ações</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for categoria in categorias %}
                                         <tr>
+                                            <td class="text-center">
+                                                <div class="color-box" style="background-color: {{ categoria.cor }};"></div>
+                                            </td>
                                             <td class="fw-bold">{{ categoria.nome }}</td>
                                             <td>
                                                 {% if categoria.tipo == 'E' %}<span class="badge" style="background:#b4e3d3; color:#222; border:1px solid #222;">Essencial</span>

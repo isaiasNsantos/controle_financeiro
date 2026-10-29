@@ -22,13 +22,25 @@ class PessoaForm(forms.ModelForm):
 class CategoriaForm(forms.ModelForm):
     class Meta:
         model = Categoria
-        fields = ['nome', 'tipo', 'limite_mensal', 'ativo']
+        fields = ['nome', 'tipo', 'limite_mensal', 'cor', 'ativo']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Mercado, Luz, Lazer'}),
             'tipo': forms.Select(attrs={'class': 'form-select'}),
             'limite_mensal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Deixe vazio se não tiver limite'}),
+            'cor': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color', 'title': 'Escolha a cor da categoria'}),
             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+# class CategoriaForm(forms.ModelForm):
+#     class Meta:
+#         model = Categoria
+#         fields = ['nome', 'tipo', 'limite_mensal', 'ativo']
+#         widgets = {
+#             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Mercado, Luz, Lazer'}),
+#             'tipo': forms.Select(attrs={'class': 'form-select'}),
+#             'limite_mensal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Deixe vazio se não tiver limite'}),
+#             'ativo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+#         }
 
 class FormaPagamentoForm(forms.ModelForm):
     class Meta:

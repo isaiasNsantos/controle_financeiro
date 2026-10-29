@@ -24,6 +24,7 @@ class Categoria(models.Model):
     nome = models.CharField(max_length=50)
     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default=TIPO_NAO_ESSENCIAL)
     limite_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    cor = models.CharField(max_length=20, default='#a8c8f0', help_text="Cor em hexadecimal para o card") # <-- NOVO
     ativo = models.BooleanField(default=True)
 
     class Meta:
@@ -33,6 +34,27 @@ class Categoria(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.get_tipo_display()})"
+
+# class Categoria(models.Model):
+#     TIPO_ESSENCIAL = 'E'
+#     TIPO_NAO_ESSENCIAL = 'N'
+#     TIPO_CHOICES = [
+#         (TIPO_ESSENCIAL, 'Essencial'),
+#         (TIPO_NAO_ESSENCIAL, 'Não essencial'),
+#     ]
+
+#     nome = models.CharField(max_length=50)
+#     tipo = models.CharField(max_length=1, choices=TIPO_CHOICES, default=TIPO_NAO_ESSENCIAL)
+#     limite_mensal = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+#     ativo = models.BooleanField(default=True)
+
+#     class Meta:
+#         verbose_name = "Categoria"
+#         verbose_name_plural = "Categorias"
+#         ordering = ['nome']
+
+#     def __str__(self):
+#         return f"{self.nome} ({self.get_tipo_display()})"
 
 # class Categoria(models.Model):
 #     TIPO_ESSENCIAL = 'E'
