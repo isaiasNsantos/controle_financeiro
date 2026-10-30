@@ -105,15 +105,6 @@ class GastoForm(forms.ModelForm):
         self.fields['cartao'].required = False
         self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
 
-# class GastoForm(forms.ModelForm):
-#     parcela_atual = forms.IntegerField(
-#         required=False, min_value=1, initial=1, label="Parcela Atual",
-#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
-#     )
-#     total_parcelas = forms.IntegerField(
-#         required=False, min_value=1, initial=1, label="Total de Parcelas",
-#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
-#     )
 
     class Meta:
         model = Gasto

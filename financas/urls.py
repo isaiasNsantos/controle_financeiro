@@ -60,4 +60,6 @@ urlpatterns = [
     path('cofre/divida/<int:divida_id>/excluir/', views.divida_excluir, name='divida_excluir'),
 
     path('perfil/', views.perfil, name='perfil'),
+    path('gastos/<int:gasto_id>/pagar/', views.gasto_pagar, name='gasto_pagar'),
+    path('cartoes/<int:cartao_id>/pagar-fatura/', views.pagar_fatura, name='pagar_fatura'),
 ]

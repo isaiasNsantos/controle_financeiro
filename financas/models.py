@@ -110,7 +110,7 @@ class Gasto(models.Model):
     pessoa = models.ForeignKey(Pessoa, on_delete=models.PROTECT, related_name='gastos')
     forma_pagamento = models.ForeignKey(FormaPagamento, on_delete=models.PROTECT, related_name='gastos')
     cartao = models.ForeignKey(Cartao, on_delete=models.SET_NULL, null=True, blank=True, related_name='gastos')
-    
+    pago = models.BooleanField(default=False) # <-- NOVO CAMPO
     # NOVOS CAMPOS
     parcela_atual = models.PositiveIntegerField(null=True, blank=True)
     total_parcelas = models.PositiveIntegerField(null=True, blank=True)

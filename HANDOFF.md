@@ -178,3 +178,31 @@ text
 Agora você tem uma documentação de nível profissional no seu repositório. Daqui a um ano, se você voltar nesse projeto e não lembrar de nada, esse guia vai te salvar! 🚀
 
 Foi um prazer te ajudar nessa jornada, mano. O projeto tá no ar, documentado e seguro. Sucesso demais! 🤜🤛
+
+PASSO 2: O que fazer com aquelas parcelas antigas no banco?
+Como as parcelas futuras (5/12, 6/12, etc.) do seu banco de dados ainda estão como pago=False, a Projeção vai continuar achando que tem algo pendente e não vai riscar a linha.
+
+Para consertar isso de forma definitiva no seu banco de dados, abra o terminal do VS Code, digite python manage.py shell e cole exatamente isso (pode copiar tudo de uma vez e dar Enter):
+
+python
+from financas.models import Gasto
+from django.db.models import Q
+
+# Pega os gastos que têm parcelas e não estão pagos
+nao_pagos = Gasto.objects.filter(pago=False, cartao__isnull=False)
+
+for g in nao_pagos:
+    nome_base = g.descricao.split('(')[0].strip()
+    # Procura se existe alguma parcela desse mesmo item que JÁ está paga
+    tem_alguma_paga = Gasto.objects.filter(
+        descricao__startswith=nome_base, 
+        cartao=g.cartao, 
+        pago=True
+    ).exists()
+    
+    if tem_alguma_paga:
+        # Se achou, significa que a fatura já foi paga. Marca essa parcela como paga também.
+        g.pago = True
+        g.save()
+
+print("Todas as parcelas de faturas já pagas foram atualizadas!")

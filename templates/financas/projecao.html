@@ -11,7 +11,7 @@
     {% else %}
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
-            :root { --bg-color: #fcf9f5; --line-color: #e5dcd0; --mint-green: #b4e3d3; --mint-green-dark: #81c7b3; --pink: #f7b2bd; --purple: #d1b3e2; --text-dark: #333333; --border-dark: #222222; }
+            :root { --bg-color: #e8f0e8; --line-color: #dce8dc; --mint-green: #b4e3d3; --mint-green-dark: #81c7b3; --pink: #f7b2bd; --purple: #d1b3e2; --text-dark: #333333; --border-dark: #222222; }
             .journal-bg { background-color: var(--bg-color); background-image: linear-gradient(var(--line-color) 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive, sans-serif; color: var(--text-dark); padding: 30px; border-radius: 8px; margin-top: -10px; }
             .main-title { text-align: center; font-family: 'Architects Daughter', cursive; font-size: 2.2rem; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; color: var(--border-dark); text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
             .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
@@ -35,7 +35,7 @@
             
             .valor-gasto { color: #d15b6d; }
 
-            /* REMOVIDO O NEGRITO DAS LINHAS DE TOTAL */
+            /* LINHAS DE TOTAL */
             .linha-gastos td { background-color: #f7b2bd !important; border-top: 2px solid var(--border-dark); color: #222; }
             .linha-receitas td { background-color: #b4e3d3 !important; border-top: 1px dashed var(--border-dark); color: #222; }
             .linha-saldo td { background-color: #d1b3e2 !important; border-top: 2px solid var(--border-dark); border-bottom: 2px solid var(--border-dark); font-size: 1.05rem; color: #222; }
@@ -87,7 +87,8 @@
                                         {{ linha.categoria }}
                                     </td>
                                     {% for m in meses_colunas %}
-                                        <td class="text-end">
+                                        <!-- AQUI ESTÁ A MÁGICA: O visual é aplicado na CÉLULA, não na linha -->
+                                        <td class="text-end" style="{% if linha.pago_por_mes|get_item:m.id %}opacity: 0.5; text-decoration: line-through; color: #999;{% endif %}">
                                             {% with valor=linha.valores|get_item:m.id %}
                                                 {% if valor %}
                                                     <span class="valor-gasto">R$ {{ valor|moeda }}</span>
@@ -107,7 +108,7 @@
                             {% endfor %}
                             
                             {% if linhas_projecao %}
-                            <!-- LINHA 1: TOTAL GASTOS (Vermelho) -->
+                            <!-- LINHA 1: TOTAL GASTOS -->
                             <tr class="linha-gastos">
                                 <td>TOTAL GASTOS</td>
                                 {% for m in meses_colunas %}
@@ -117,7 +118,7 @@
                                 {% endfor %}
                             </tr>
                             
-                            <!-- LINHA 2: TOTAL RECEITAS (Verde) -->
+                            <!-- LINHA 2: TOTAL RECEITAS -->
                             <tr class="linha-receitas">
                                 <td>TOTAL RECEITAS</td>
                                 {% for m in meses_colunas %}
@@ -127,7 +128,7 @@
                                 {% endfor %}
                             </tr>
 
-                            <!-- LINHA 3: SALDO LIVRE (Roxo) -->
+                            <!-- LINHA 3: SALDO LIVRE -->
                             <tr class="linha-saldo">
                                 <td>SALDO LIVRE</td>
                                 {% for m in meses_colunas %}

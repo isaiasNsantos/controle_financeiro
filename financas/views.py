@@ -29,7 +29,6 @@ from .forms import (
     PerfilForm, AlterarSenhaForm
 )
 
-
 # ==========================================
 # PESSOAS
 # ==========================================
@@ -395,7 +394,6 @@ def gasto_lista(request):
         'total': total,
     })
 
-
 @login_required
 def gasto_criar(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -419,17 +417,19 @@ def gasto_criar(request):
                 data_base = gasto.data
 
                 for i in range(parcela_atual, total_parcelas + 1):
+                    # Calcula o mês futuro somando os meses
                     nova_data = data_base + relativedelta(months=(i - parcela_atual))
 
                     if i == parcela_atual:
                         mes_parcela = mes_ativo
                     else:
+                        # Cria o mês se ele não existir (ex: vira o ano)
                         mes_parcela, _ = Mes.objects.get_or_create(ano=nova_data.year, mes=nova_data.month)
 
                     novo_gasto = Gasto(
                         mes=mes_parcela,
                         descricao=f"{gasto.descricao} ({i}/{total_parcelas})",
-                        valor=gasto.valor,
+                        valor=gasto.valor, # <-- O valor da parcela é o mesmo para todas
                         data=nova_data,
                         categoria=gasto.categoria,
                         pessoa=gasto.pessoa,
@@ -465,13 +465,18 @@ def gasto_criar(request):
         'total': sum(g.valor for g in gastos),
     })
 
-
 @login_required
 def gasto_excluir(request, gasto_id):
-    gasto = Gasto.objects.get(id=gasto_id)
     if request.method == 'POST':
-        gasto.delete()
-        messages.success(request, 'Gasto excluído com sucesso!')
+        try:
+            gasto = Gasto.objects.get(id=gasto_id)
+            # Se for uma compra parcelada, a gente pode deletar o grupo inteiro ou só a parcela
+            # Aqui vamos deletar apenas a parcela específica
+            gasto.delete()
+            messages.success(request, 'Gasto excluído com sucesso!')
+        except Gasto.DoesNotExist:
+            messages.error(request, 'Gasto não encontrado.')
+            
     return redirect('gasto_lista')
 
 
@@ -719,6 +724,8 @@ def importar_fatura(request):
 
                 nome_base = re.sub(r'Parcela \d+/\d+', '', descricao_limpa).strip()
                 nome_base = re.sub(r'\d{2}/\d{2}$', '', nome_base).strip()
+                
+                grupo_id = uuid.uuid4()
 
                 Gasto.objects.create(
                     mes=mes_ativo,
@@ -729,6 +736,9 @@ def importar_fatura(request):
                     pessoa=pessoa,
                     forma_pagamento=forma_credito,
                     cartao=cartao,
+                    parcela_atual=parcela_atual,
+                    total_parcelas=total_parcelas,
+                    grupo_parcelas=grupo_id,
                 )
 
                 for j in range(1, parcelas_restantes + 1):
@@ -750,6 +760,9 @@ def importar_fatura(request):
                         pessoa=pessoa,
                         forma_pagamento=forma_credito,
                         cartao=cartao,
+                        parcela_atual=parcela_atual + j,
+                        total_parcelas=total_parcelas,
+                        grupo_parcelas=grupo_id,
                     )
             else:
                 Gasto.objects.create(
@@ -765,7 +778,13 @@ def importar_fatura(request):
             salvos += 1
 
         messages.success(request, f'{salvos} transações importadas com sucesso!')
-        return redirect('gasto_lista')
+        
+        # Força a sessão a voltar para o mês atual após importar
+        hoje = date.today()
+        mes_hoje, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
+        request.session['mes_ativo_id'] = mes_hoje.id
+        
+        return redirect('financas_home')
 
     # 2. LER O PDF
     if request.method == 'POST' and request.FILES.get('arquivo_pdf'):
@@ -939,9 +958,6 @@ def importar_fatura(request):
     return render(request, 'financas/importar_fatura.html')
 
 
-# ==========================================
-# PROJEÇÃO
-# ==========================================
 @login_required
 def projecao(request):
     mes_ativo_id = request.session.get('mes_ativo_id')
@@ -949,10 +965,10 @@ def projecao(request):
         return render(request, 'financas/projecao.html', {'sem_mes_ativo': True})
 
     mes_ativo = Mes.objects.get(id=mes_ativo_id)
-
+    
     ano_base = int(request.GET.get('ano', mes_ativo.ano))
     mes_base = int(request.GET.get('mes', mes_ativo.mes))
-
+    
     nomes_meses = {
         1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
         7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
@@ -960,68 +976,86 @@ def projecao(request):
 
     meses_colunas = []
     data_atual = date(ano_base, mes_base, 1)
-
+    
     for i in range(12):
         mes_alvo = data_atual + relativedelta(months=i)
         meses_colunas.append({
             'id': f"{mes_alvo.year}-{mes_alvo.month}",
-            'nome': f"{nomes_meses[mes_alvo.month]}/{mes_alvo.year}",
+            'nome': f"{nomes_meses[mes_alvo.month]}/{mes_alvo.year}", 
             'ano': mes_alvo.year,
             'mes': mes_alvo.month,
         })
 
     data_anterior = data_atual - relativedelta(months=1)
     data_posterior = data_atual + relativedelta(months=1)
-
+    
     anos_filtro = list(set([m['ano'] for m in meses_colunas]))
-
+    
     gastos_periodo = Gasto.objects.filter(
         mes__ano__in=anos_filtro
-    ).select_related('mes', 'cartao', 'pessoa')
+    ).exclude(descricao__startswith="Pagamento Fatura:").select_related('mes', 'cartao', 'pessoa').order_by('data')
 
+    agrupado = {}
     totais_gastos = {m['id']: Decimal('0') for m in meses_colunas}
     totais_receitas = {m['id']: Decimal('0') for m in meses_colunas}
     saldos_livres = {m['id']: Decimal('0') for m in meses_colunas}
 
-    agrupado = {}
+    # 1. RECEITAS E PAGOS DO MÊS BASE (Matemática da Home)
+    receitas_base = Receita.objects.filter(mes=mes_ativo).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+    gastos_mes_base = Gasto.objects.filter(mes=mes_ativo).exclude(descricao__startswith="Pagamento Fatura:")
+    total_pago_base = gastos_mes_base.filter(pago=True).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+    
+    saldo_caixa_home = receitas_base - total_pago_base
 
     for g in gastos_periodo:
         id_mes = f"{g.mes.ano}-{g.mes.mes}"
-
+        
         if id_mes not in totais_gastos:
             continue
 
-        nome_limpo = re.sub(r'\s*\(?\d+/\d+\)?|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
-
+        nome_limpo = re.sub(r'\s*\(\d+/\d+\)|\s*-\s*Parcela\s*\d+/\d+', '', g.descricao).strip()
         if not nome_limpo:
             nome_limpo = g.descricao
-
+            
         chave_grupo = f"{g.pessoa.nome}|{nome_limpo}"
-
+            
         if chave_grupo not in agrupado:
             agrupado[chave_grupo] = {
                 'categoria': nome_limpo,
                 'pessoa': g.pessoa.nome,
-                'valores': {}
+                'valores': {},
+                'pago_por_mes': {m['id']: True for m in meses_colunas}, # <--- A MÁGICA DO CINZA ESTÁ AQUI
             }
-
+            
         if id_mes not in agrupado[chave_grupo]['valores']:
             agrupado[chave_grupo]['valores'][id_mes] = Decimal('0')
-
+            
+        # Se achar qualquer parcela não paga naquele mês específico, ele NÃO pinta de cinza
+        if not g.pago:
+            agrupado[chave_grupo]['pago_por_mes'][id_mes] = False
+            
         agrupado[chave_grupo]['valores'][id_mes] += g.valor
         totais_gastos[id_mes] += g.valor
 
+    linhas_projecao = list(agrupado.values())
+
+    # --- CALCULA AS RECEITAS DA TABELA ---
     receitas_periodo = Receita.objects.filter(mes__ano__in=anos_filtro)
     for r in receitas_periodo:
         id_mes = f"{r.mes.ano}-{r.mes.mes}"
         if id_mes in totais_receitas:
             totais_receitas[id_mes] += r.valor
 
+    # --- CALCULA O SALDO LIVRE ---
+    saldo_corrente = saldo_caixa_home
+    
     for m in meses_colunas:
         id_mes = m['id']
-        saldos_livres[id_mes] = totais_receitas[id_mes] - totais_gastos[id_mes]
+        pendente_do_mes = sum(g.valor for g in gastos_periodo if f"{g.mes.ano}-{g.mes.mes}" == id_mes and not g.pago)
+        
+        saldo_corrente = saldo_corrente - pendente_do_mes
+        saldos_livres[id_mes] = saldo_corrente
 
-    linhas_projecao = list(agrupado.values())
     linhas_projecao = sorted(linhas_projecao, key=lambda x: (x['pessoa'], x['categoria'].lower()))
 
     return render(request, 'financas/projecao.html', {
@@ -1040,7 +1074,6 @@ def projecao(request):
         'ano_posterior': data_posterior.year,
         'mes_posterior': data_posterior.month,
     })
-
 
 # ==========================================
 # HISTÓRICO
@@ -1069,7 +1102,6 @@ def historico_detalhe(request, mes_id):
         'total_gastos': total_gastos,
         'sobra': sobra,
     })
-
 
 # ==========================================
 # COFRE (DÍVIDAS E RESERVA)
@@ -1376,13 +1408,11 @@ def exportar_relatorio(request):
     return response
 
 
-# ==========================================
-# TELA PRINCIPAL (AGENDA / CONTAS A VENCER)
-# ==========================================
 @login_required
 def home(request):
     hoje = date.today()
-
+    
+    # Se o usuário clicou em Anterior/Próximo, a gente respeita
     ano_get = request.GET.get('ano')
     mes_get = request.GET.get('mes')
 
@@ -1390,22 +1420,29 @@ def home(request):
         ano_base = int(ano_get)
         mes_base = int(mes_get)
     else:
+        mes_exibido = None
+        
+        # 1. Tenta achar o mês exato de hoje no banco
         mes_exibido = Mes.objects.filter(ano=hoje.year, mes=hoje.month, fechado=False).first()
-
+        
+        # 2. Se não achou (ou tá fechado), busca o próximo mês que está aberto
         if not mes_exibido:
             mes_exibido = Mes.objects.filter(fechado=False).order_by('ano', 'mes').filter(
                 models.Q(ano__gt=hoje.year) | models.Q(ano=hoje.year, mes__gte=hoje.month)
             ).first()
-
+            
+        # 3. Se ainda não achou, pega qualquer um que esteja aberto
         if not mes_exibido:
             mes_exibido = Mes.objects.filter(fechado=False).order_by('-ano', '-mes').first()
 
+        # 4. Se o banco estiver zerado, cria o mês atual
         if not mes_exibido:
             mes_exibido, _ = Mes.objects.get_or_create(ano=hoje.year, mes=hoje.month)
 
         ano_base = mes_exibido.ano
         mes_base = mes_exibido.mes
 
+    # Se o mês que ele tentou navegar não existir, a gente usa o da sessão
     mes_exibido = Mes.objects.filter(ano=ano_base, mes=mes_base).first()
     if not mes_exibido:
         mes_exibido = Mes.objects.filter(id=request.session.get('mes_ativo_id')).first()
@@ -1414,40 +1451,63 @@ def home(request):
         ano_base = mes_exibido.ano
         mes_base = mes_exibido.mes
 
+    # Salva na sessão para as outras telas seguirem
     request.session['mes_ativo_id'] = mes_exibido.id
 
     data_atual = date(ano_base, mes_base, 1)
     data_anterior = data_atual - relativedelta(months=1)
     data_posterior = data_atual + relativedelta(months=1)
 
+    # 1. CONTAS INDIVIDUAIS
     contas_individuais = Gasto.objects.filter(
         cartao__isnull=True,
-        data__year=ano_base,
+        data__year=ano_base, 
         data__month=mes_base
     ).order_by('data')
 
+    # 2. FATURAS DE CARTÃO
     gastos_cartao = Gasto.objects.filter(
         cartao__isnull=False,
-        mes=mes_exibido
+        mes=mes_exibido 
     )
-
+    
     cartoes_resumo = {}
     for g in gastos_cartao:
         if g.cartao.id not in cartoes_resumo:
             dia_venc = g.cartao.dia_vencimento if g.cartao.dia_vencimento else 1
             data_vencimento = date(ano_base, mes_base, dia_venc)
-
+            
             cartoes_resumo[g.cartao.id] = {
                 'cartao': g.cartao,
                 'total': Decimal('0'),
                 'vencimento': data_vencimento,
+                'pago': True, # Começa True e vira False se tiver algo pendente
             }
+        
+        if not g.pago:
+            cartoes_resumo[g.cartao.id]['pago'] = False
+            
         cartoes_resumo[g.cartao.id]['total'] += g.valor
 
+    # --- CÁLCULOS DO RESUMO ---
+    # 1. O custo REAL do mês (tudo, pago ou não)
     total_geral_gastos = sum(g.valor for g in contas_individuais) + sum(c['total'] for c in cartoes_resumo.values())
     total_geral_receitas = Receita.objects.filter(mes=mes_exibido).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-    saldo_geral = total_geral_receitas - total_geral_gastos
 
+    # 2. O que já saiu do caixa (Apenas o que está pago)
+    total_pago_individual = sum(g.valor for g in contas_individuais if g.pago)
+    total_pago_cartoes = sum(c['total'] for c in cartoes_resumo.values() if c['pago'])
+    total_ja_pago = total_pago_individual + total_pago_cartoes
+
+    # 3. O Saldo em Caixa (Receitas - O que já foi pago)
+    saldo_geral = total_geral_receitas - total_ja_pago
+
+    # 4. O que ainda falta pagar (Pendentes)
+    total_pendente_individual = sum(g.valor for g in contas_individuais if not g.pago)
+    total_pendente_cartoes = sum(c['total'] for c in cartoes_resumo.values() if not c['pago'])
+    total_pendente = total_pendente_individual + total_pendente_cartoes
+
+    # Próximas Contas e Atrasadas
     if ano_base == hoje.year and mes_base == hoje.month:
         proximas = [c for c in contas_individuais if c.data >= hoje]
         atrasadas = [c for c in contas_individuais if c.data < hoje]
@@ -1457,12 +1517,14 @@ def home(request):
 
     lista_proximas = proximas
 
+    # --- LISTA DE EXTRATO COMPLETO ---
     todos_gastos_mes = list(contas_individuais) + list(gastos_cartao)
     todos_gastos_mes = sorted(todos_gastos_mes, key=lambda x: x.data, reverse=True)
 
+    # Calendário
     eventos_calendario = []
     for g in contas_individuais:
-        cor = '#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899'
+        cor = '#16a34a' if g.pago else ('#8b5cf6' if g.categoria.tipo == 'E' else '#ec4899')
         eventos_calendario.append({
             'title': f"R$ {g.valor} - {g.descricao}",
             'start': g.data.isoformat(),
@@ -1470,23 +1532,22 @@ def home(request):
             'borderColor': '#222222',
             'textColor': '#ffffff'
         })
-
+        
     for c_id, c_info in cartoes_resumo.items():
-        cor_hex = c_info['cartao'].cor if c_info['cartao'].cor else '#d1b3e2'
+        cor_hex = '#16a34a' if c_info['pago'] else (c_info['cartao'].cor if c_info['cartao'].cor else '#d1b3e2')
         eventos_calendario.append({
             'title': f"Fatura {c_info['cartao'].nome}: R$ {c_info['total']}",
             'start': c_info['vencimento'].isoformat(),
             'backgroundColor': cor_hex,
             'borderColor': '#222222',
-            'textColor': '#111111'
+            'textColor': '#ffffff' if c_info['pago'] else '#111111'
         })
 
     eventos_json = json.dumps(eventos_calendario)
-
     form_gasto = GastoForm(initial={'data': date(ano_base, mes_base, 1)})
 
     return render(request, 'financas/home.html', {
-        'mes_ativo': mes_exibido,
+        'mes_ativo': mes_exibido, 
         'hoje': hoje,
         'cartoes_resumo': list(cartoes_resumo.values()),
         'lista_proximas': lista_proximas,
@@ -1501,13 +1562,64 @@ def home(request):
         'total_geral_gastos': total_geral_gastos,
         'total_geral_receitas': total_geral_receitas,
         'saldo_geral': saldo_geral,
+        'total_pendente': total_pendente, # <-- Adicionado para voltar o botão "A Pagar"
         'lista_extrato': todos_gastos_mes,
     })
 
+@login_required
+def pagar_fatura(request, cartao_id):
+    if request.method == 'POST':
+        cartao = Cartao.objects.get(id=cartao_id)
+        mes_ativo_id = request.session.get('mes_ativo_id')
+        
+        if not mes_ativo_id:
+            messages.error(request, 'Nenhum mês ativo selecionado.')
+            return redirect('mes_lista')
+            
+        mes_ativo = Mes.objects.get(id=mes_ativo_id)
+        
+        # 1. Pega as compras pendentes APENAS DO MÊS ATUAL
+        compras_pendentes = Gasto.objects.filter(
+            mes=mes_ativo, 
+            cartao=cartao, 
+            pago=False
+        )
+        
+        if compras_pendentes.exists():
+            total_fatura = compras_pendentes.aggregate(total=Sum('valor'))['total'] or Decimal('0')
+            
+            # 2. Marca APENAS as compras do mês atual como pagas
+            # (As parcelas de dezembro, janeiro, etc. continuam pendentes no banco)
+            compras_pendentes.update(pago=True)
+            
+            # 3. Cria o Gasto Fantasma (para debitar o caixa)
+            cat_pagamento, _ = Categoria.objects.get_or_create(nome='Pagamento de Fatura', defaults={'tipo': 'N'})
+            forma_pagamento, _ = FormaPagamento.objects.get_or_create(nome='Transferência/Conta')
+            pessoa = Pessoa.objects.first()
 
-# ==========================================
-# PERFIL
-# ==========================================
+            Gasto.objects.create(
+                mes=mes_ativo,
+                descricao=f"Pagamento Fatura: {cartao.nome}",
+                valor=total_fatura,
+                data=date.today(),
+                categoria=cat_pagamento,
+                pessoa=pessoa,
+                forma_pagamento=forma_pagamento,
+                cartao=None, 
+                pago=True    
+            )
+            
+            messages.success(request, f'Fatura do cartão {cartao.nome} paga com sucesso! Valor: R$ {total_fatura:.2f}')
+        else:
+            messages.info(request, f'A fatura do cartão {cartao.nome} já está paga.')
+            
+        ano = request.POST.get('ano')
+        mes = request.POST.get('mes')
+        if ano and mes:
+            return redirect(f'/financas/?ano={ano}&mes={mes}')
+            
+    return redirect('financas_home')
+
 @login_required
 def perfil(request):
     perfil, created = Perfil.objects.get_or_create(usuario=request.user)
@@ -1572,3 +1684,19 @@ def cartao_detalhe(request, cartao_id):
         'gastos': gastos_cartao,
         'total': total,
     })
+
+@login_required
+def gasto_pagar(request, gasto_id):
+    if request.method == 'POST':
+        gasto = Gasto.objects.get(id=gasto_id)
+        gasto.pago = not gasto.pago
+        gasto.save()
+        
+        # Pega o mês que o usuário estava visualizando na tela
+        ano = request.POST.get('ano')
+        mes = request.POST.get('mes')
+        if ano and mes:
+            return redirect(f'/financas/?ano={ano}&mes={mes}')
+            
+    # Se não tiver ano/mes, volta para a home normal (que vai abrir no mês de hoje)
+    return redirect('financas_home')
