@@ -1544,3 +1544,31 @@ def perfil(request):
         'form_perfil': form_perfil,
         'form_senha': form_senha,
     })
+
+# ==========================================
+# DETALHE DO CARTÃO (Fatura isolada)
+# ==========================================
+@login_required
+def cartao_detalhe(request, cartao_id):
+    cartao = Cartao.objects.get(id=cartao_id)
+    mes_ativo_id = request.session.get('mes_ativo_id')
+    
+    if not mes_ativo_id:
+        return redirect('mes_lista')
+    
+    mes_ativo = Mes.objects.get(id=mes_ativo_id)
+    
+    # Pega apenas os gastos desse cartão no mês ativo
+    gastos_cartao = Gasto.objects.filter(
+        cartao=cartao,
+        mes=mes_ativo
+    ).order_by('-data', '-id')
+    
+    total = sum(g.valor for g in gastos_cartao)
+    
+    return render(request, 'financas/cartao_detalhe.html', {
+        'cartao': cartao,
+        'mes_ativo': mes_ativo,
+        'gastos': gastos_cartao,
+        'total': total,
+    })

@@ -1,0 +1,84 @@
+{% extends 'financas/base.html' %}
+{% load formatacao %}
+
+{% block title %}Fatura {{ cartao.nome }} - Controle Financeiro{% endblock %}
+
+{% block content %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
+        .journal-bg { background-color: #e8f0e8; background-image: linear-gradient(#dce8dc 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; color: #222; }
+        .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
+        .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
+        .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
+    </style>
+
+    <div class="journal-bg">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <div class="main-title" style="margin: 0;">Fatura: {{ cartao.nome }}</div>
+                <div class="text-muted" style="font-size: 1.1rem;">Mês de referência: {{ mes_ativo }}</div>
+            </div>
+            <div class="text-end">
+                <div class="badge" style="background: {{ cartao.cor }}; color: #222; border: 2px solid #222; font-size: 1.2rem; padding: 10px 15px;">
+                    Total: R$ {{ total|moeda }}
+                </div>
+                <br>
+                <a href="{% url 'cartao_lista' %}" class="btn btn-sm btn-outline-secondary mt-2">Voltar aos Cartões</a>
+            </div>
+        </div>
+
+        <div class="card card-journal p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-journal align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th class="text-end">Valor</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gastos %}
+                            <tr>
+                                <td>{{ g.data|date:"d/m/Y" }}</td>
+                                <td class="fw-bold">
+                                    {{ g.descricao }}
+                                </td>
+                                <td>
+                                    {% if g.categoria.tipo == 'E' %}
+                                        <span class="badge" style="background:#b4e3d3; border:1px solid #222; color:#222;">{{ g.categoria.nome }}</span>
+                                    {% else %}
+                                        <span class="badge" style="background:#a8c8f0; border:1px solid #222; color:#222;">{{ g.categoria.nome }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end text-vermelho fw-bold">R$ {{ g.valor|moeda }}</td>
+                                <td class="text-end">
+                                    <!-- BOTÕES DE EDITAR E EXCLUIR -->
+                                    <a href="{% url 'gasto_editar' g.id %}" class="btn btn-sm btn-link text-secondary p-1" title="Editar Gasto">
+                                        <i class="bi bi-pencil-square fs-5"></i>
+                                    </a>
+                                    <form method="post" action="{% url 'gasto_excluir' g.id %}" class="d-inline"
+                                          onsubmit="return confirm('Excluir o gasto {{ g.descricao }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-1" title="Excluir Gasto">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <h5 style="font-family: 'Architects Daughter'; color: #888;">Nenhum gasto lançado neste cartão para este mês.</h5>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

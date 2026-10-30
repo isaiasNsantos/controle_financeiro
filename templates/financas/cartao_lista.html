@@ -5,7 +5,7 @@
 {% block content %}
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap');
-        .journal-bg { background-color: #fcf9f5; background-image: linear-gradient(#e5dcd0 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
+        .journal-bg { background-color: #e8f0e8; background-image: linear-gradient(#dce8dc 1px, transparent 1px); background-size: 100% 28px; font-family: 'Patrick Hand', cursive; padding: 30px; border-radius: 8px; margin-top: -10px; color: #333; }
         .main-title { font-family: 'Architects Daughter', cursive; font-size: 2rem; text-align: center; margin-bottom: 20px; color: #222; }
         .card-journal { border: 2px solid #222 !important; background: rgba(255,255,255,0.9) !important; box-shadow: 4px 4px 0px #222 !important; border-radius: 4px !important; }
         .btn-journal { border: 2px solid #222; background: #b4e3d3; color: #222; font-weight: bold; box-shadow: 3px 3px 0px #222; transition: 0.1s; }
@@ -14,7 +14,7 @@
         .btn-journal-danger:hover { background: #f28a9a; }
         .table-journal th { border-bottom: 2px solid #222 !important; background: #d1b3e2 !important; text-align: center; font-family: 'Architects Daughter'; font-weight: normal; }
         .table-journal td { border-bottom: 1px dashed #a39f98 !important; }
-        .color-box { width: 25px; height: 25px; border: 2px solid #222; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 10px; }
+        .color-box { width: 25px; height: 25px; border: 2px solid #222; border-radius: 4px; display: inline-block; vertical-align: middle; }
     </style>
 
     <div class="journal-bg">
@@ -57,6 +57,10 @@
                                             <td>{% if cartao.limite %}R$ {{ cartao.limite }}{% else %}-{% endif %}</td>
                                             <td>{% if cartao.dia_vencimento %}Dia {{ cartao.dia_vencimento }}{% else %}-{% endif %}</td>
                                             <td>
+                                                <!-- BOTÃO NOVO: VER FATURA -->
+                                                <a href="{% url 'cartao_detalhe' cartao.id %}" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.8rem;" title="Ver Fatura Isolada">
+                                                    <i class="bi bi-eye"></i> Ver
+                                                </a>
                                                 <a href="{% url 'cartao_editar' cartao.id %}" class="btn btn-sm btn-journal py-0 px-2" style="font-size:0.8rem;">✏️</a>
                                                 <form method="post" action="{% url 'cartao_excluir' cartao.id %}" class="d-inline" onsubmit="return confirm('Excluir?');">
                                                     {% csrf_token %}

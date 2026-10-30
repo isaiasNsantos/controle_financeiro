@@ -51,6 +51,7 @@ urlpatterns = [
     path('cartoes/criar/', views.cartao_criar, name='cartao_criar'),
     path('cartoes/<int:cartao_id>/editar/', views.cartao_editar, name='cartao_editar'),
     path('cartoes/<int:cartao_id>/excluir/', views.cartao_excluir, name='cartao_excluir'),
+    path('cartoes/<int:cartao_id>/', views.cartao_detalhe, name='cartao_detalhe'),
     
     # Histórico e Cofre
     path('historico/', views.historico_lista, name='historico_lista'),

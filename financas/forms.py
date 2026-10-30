@@ -68,6 +68,7 @@ class ReceitaForm(forms.ModelForm):
         self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
 
 class GastoForm(forms.ModelForm):
+    # Campos para o parcelamento
     parcela_atual = forms.IntegerField(
         required=False, min_value=1, initial=1, label="Parcela Atual",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
@@ -76,6 +77,43 @@ class GastoForm(forms.ModelForm):
         required=False, min_value=1, initial=1, label="Total de Parcelas",
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
     )
+
+    class Meta:
+        model = Gasto
+        fields = ['descricao', 'valor', 'data', 'categoria', 'pessoa', 'forma_pagamento', 'cartao']
+        widgets = {
+            'descricao': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Notebook, Geladeira'}),
+            'valor': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Valor da Parcela'}),
+            'data': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'categoria': forms.Select(attrs={'class': 'form-select'}),
+            'pessoa': forms.Select(attrs={'class': 'form-select'}),
+            'forma_pagamento': forms.Select(attrs={'class': 'form-select'}),
+            'cartao': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Se for criação nova, coloca a data de hoje
+        if not self.instance.pk:
+            self.fields['data'].initial = date.today()
+            
+        self.fields['categoria'].queryset = Categoria.objects.filter(ativo=True)
+        self.fields['pessoa'].queryset = Pessoa.objects.filter(ativo=True)
+        self.fields['forma_pagamento'].queryset = FormaPagamento.objects.filter(ativo=True)
+        self.fields['cartao'].queryset = Cartao.objects.filter(ativo=True)
+        self.fields['cartao'].required = False
+        self.fields['cartao'].empty_label = "Nenhum / Não é cartão"
+
+# class GastoForm(forms.ModelForm):
+#     parcela_atual = forms.IntegerField(
+#         required=False, min_value=1, initial=1, label="Parcela Atual",
+#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
+#     )
+#     total_parcelas = forms.IntegerField(
+#         required=False, min_value=1, initial=1, label="Total de Parcelas",
+#         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1'})
+#     )
 
     class Meta:
         model = Gasto
